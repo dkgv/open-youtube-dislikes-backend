@@ -7,8 +7,9 @@ import (
 )
 
 type AggregateDislike struct {
-	ContentID string `json:"content_id"`
-	Count     int32  `json:"count"`
+	ContentID string    `json:"content_id"`
+	Count     int32     `json:"count"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Content struct {
@@ -16,8 +17,16 @@ type Content struct {
 	ExternalIDHash string `json:"external_id_hash"`
 }
 
-type Dislike struct {
+type SingleDislike struct {
 	ContentID string    `json:"content_id"`
 	HashedIp  string    `json:"hashed_ip"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type YoutubeVideo struct {
+	ContentID    string `json:"content_id"`
+	Likes        int32  `json:"likes"`
+	Dislikes     int32  `json:"dislikes"`
+	Views        int32  `json:"views"`
+	CommentCount int32  `json:"comment_count"`
 }

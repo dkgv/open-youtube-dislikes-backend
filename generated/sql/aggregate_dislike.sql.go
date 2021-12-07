@@ -5,6 +5,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const getAggregateDislikeCount = `-- name: GetAggregateDislikeCount :one
@@ -29,5 +30,20 @@ type SetAggregateDislikeCountParams struct {
 
 func (q *Queries) SetAggregateDislikeCount(ctx context.Context, arg SetAggregateDislikeCountParams) error {
 	_, err := q.exec(ctx, q.setAggregateDislikeCountStmt, setAggregateDislikeCount, arg.ContentID, arg.Count)
+	return err
+}
+
+const updateAggregateDislikeCount = `-- name: UpdateAggregateDislikeCount :exec
+UPDATE aggregate_dislike SET count = $2, updated_at = $3 WHERE content_id = $1
+`
+
+type UpdateAggregateDislikeCountParams struct {
+	ContentID string    `json:"content_id"`
+	Count     int32     `json:"count"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (q *Queries) UpdateAggregateDislikeCount(ctx context.Context, arg UpdateAggregateDislikeCountParams) error {
+	_, err := q.exec(ctx, q.updateAggregateDislikeCountStmt, updateAggregateDislikeCount, arg.ContentID, arg.Count, arg.UpdatedAt)
 	return err
 }

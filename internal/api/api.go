@@ -3,27 +3,29 @@ package api
 import (
 	"net/http"
 
-	"github.com/dkgv/dislikes/internal/database"
+	"github.com/dkgv/dislikes/internal/database/repo"
 	"github.com/gorilla/mux"
 )
 
 type API struct {
 	router               *mux.Router
-	dislikeRepo          database.DislikeRepo
-	aggregateDislikeRepo database.AggregateDislikeRepo
+	dislikeRepo          *repo.SingleDislikeRepo
+	aggregateDislikeRepo *repo.AggregateDislikeRepo
+	youtubeDislikeRepo   *repo.YouTubeVideoRepo
 }
 
-func NewAPI(dislikeRepo database.DislikeRepo, aggregateDislikeRepo database.AggregateDislikeRepo) *API {
+func NewAPI(dislikeRepo *repo.SingleDislikeRepo, aggregateDislikeRepo *repo.AggregateDislikeRepo, youtubeDislikeRepo *repo.YouTubeVideoRepo) *API {
 	return &API{
 		router:               mux.NewRouter(),
 		dislikeRepo:          dislikeRepo,
 		aggregateDislikeRepo: aggregateDislikeRepo,
+		youtubeDislikeRepo:   youtubeDislikeRepo,
 	}
 }
 
 func (a *API) Start() error {
-	a.router.HandleFunc("/dislike", a.AddDislike).Methods("POST")
-	a.router.HandleFunc("/dislikes", a.GetDislikes).Methods("GET")
+	a.router.HandleFunc("/dislike", a.AddSingleDislike).Methods("POST")
+	a.router.HandleFunc("/add_youtube_video", a.AddYouTubeVideo).Methods("POST")
 
 	err := http.ListenAndServe(":9000", a.router)
 	return err

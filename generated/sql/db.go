@@ -25,6 +25,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.addDislikeStmt, err = db.PrepareContext(ctx, addDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query AddDislike: %w", err)
 	}
+	if q.addYouTubeVideoStmt, err = db.PrepareContext(ctx, addYouTubeVideo); err != nil {
+		return nil, fmt.Errorf("error preparing query AddYouTubeVideo: %w", err)
+	}
 	if q.getAggregateDislikeCountStmt, err = db.PrepareContext(ctx, getAggregateDislikeCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAggregateDislikeCount: %w", err)
 	}
@@ -34,6 +37,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.setAggregateDislikeCountStmt, err = db.PrepareContext(ctx, setAggregateDislikeCount); err != nil {
 		return nil, fmt.Errorf("error preparing query SetAggregateDislikeCount: %w", err)
 	}
+	if q.updateAggregateDislikeCountStmt, err = db.PrepareContext(ctx, updateAggregateDislikeCount); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateAggregateDislikeCount: %w", err)
+	}
 	return &q, nil
 }
 
@@ -42,6 +48,11 @@ func (q *Queries) Close() error {
 	if q.addDislikeStmt != nil {
 		if cerr := q.addDislikeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing addDislikeStmt: %w", cerr)
+		}
+	}
+	if q.addYouTubeVideoStmt != nil {
+		if cerr := q.addYouTubeVideoStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addYouTubeVideoStmt: %w", cerr)
 		}
 	}
 	if q.getAggregateDislikeCountStmt != nil {
@@ -57,6 +68,11 @@ func (q *Queries) Close() error {
 	if q.setAggregateDislikeCountStmt != nil {
 		if cerr := q.setAggregateDislikeCountStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing setAggregateDislikeCountStmt: %w", cerr)
+		}
+	}
+	if q.updateAggregateDislikeCountStmt != nil {
+		if cerr := q.updateAggregateDislikeCountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateAggregateDislikeCountStmt: %w", cerr)
 		}
 	}
 	return err
@@ -96,21 +112,25 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                           DBTX
-	tx                           *sql.Tx
-	addDislikeStmt               *sql.Stmt
-	getAggregateDislikeCountStmt *sql.Stmt
-	getDislikeCountStmt          *sql.Stmt
-	setAggregateDislikeCountStmt *sql.Stmt
+	db                              DBTX
+	tx                              *sql.Tx
+	addDislikeStmt                  *sql.Stmt
+	addYouTubeVideoStmt             *sql.Stmt
+	getAggregateDislikeCountStmt    *sql.Stmt
+	getDislikeCountStmt             *sql.Stmt
+	setAggregateDislikeCountStmt    *sql.Stmt
+	updateAggregateDislikeCountStmt *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                           tx,
-		tx:                           tx,
-		addDislikeStmt:               q.addDislikeStmt,
-		getAggregateDislikeCountStmt: q.getAggregateDislikeCountStmt,
-		getDislikeCountStmt:          q.getDislikeCountStmt,
-		setAggregateDislikeCountStmt: q.setAggregateDislikeCountStmt,
+		db:                              tx,
+		tx:                              tx,
+		addDislikeStmt:                  q.addDislikeStmt,
+		addYouTubeVideoStmt:             q.addYouTubeVideoStmt,
+		getAggregateDislikeCountStmt:    q.getAggregateDislikeCountStmt,
+		getDislikeCountStmt:             q.getDislikeCountStmt,
+		setAggregateDislikeCountStmt:    q.setAggregateDislikeCountStmt,
+		updateAggregateDislikeCountStmt: q.updateAggregateDislikeCountStmt,
 	}
 }
