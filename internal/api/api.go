@@ -3,16 +3,21 @@ package api
 import (
 	"net/http"
 
+	"github.com/dkgv/dislikes/internal/database"
 	"github.com/gorilla/mux"
 )
 
 type API struct {
-	router *mux.Router
+	router               *mux.Router
+	dislikeRepo          database.DislikeRepo
+	aggregateDislikeRepo database.AggregateDislikeRepo
 }
 
-func NewAPI() *API {
+func NewAPI(dislikeRepo database.DislikeRepo, aggregateDislikeRepo database.AggregateDislikeRepo) *API {
 	return &API{
-		router: mux.NewRouter(),
+		router:               mux.NewRouter(),
+		dislikeRepo:          dislikeRepo,
+		aggregateDislikeRepo: aggregateDislikeRepo,
 	}
 }
 
