@@ -24,6 +24,9 @@ func NewAPI(dislikeRepo *repo.SingleDislikeRepo, aggregateDislikeRepo *repo.Aggr
 }
 
 func (a *API) Start() error {
+	a.router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		writer.WriteHeader(200)
+	})
 	a.router.HandleFunc("/dislike", a.AddSingleDislike).Methods("POST")
 	a.router.HandleFunc("/add_youtube_video", a.AddYouTubeVideo).Methods("POST")
 
