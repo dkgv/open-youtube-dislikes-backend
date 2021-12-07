@@ -1,3 +1,5 @@
+// +heroku goVersion 1.16
+
 module github.com/dkgv/dislikes
 
 go 1.16
