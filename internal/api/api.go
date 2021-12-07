@@ -30,6 +30,5 @@ func (a *API) Start() error {
 	a.router.HandleFunc("/dislike", a.AddSingleDislike).Methods("POST")
 	a.router.HandleFunc("/add_youtube_video", a.AddYouTubeVideo).Methods("POST")
 
-	err := http.ListenAndServe(":9000", a.router)
-	return err
+	return http.ListenAndServe(":5000", a.router)
 }
