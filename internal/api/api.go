@@ -8,27 +8,26 @@ import (
 )
 
 type API struct {
-	router               *mux.Router
 	dislikeRepo          *repo.SingleDislikeRepo
 	aggregateDislikeRepo *repo.AggregateDislikeRepo
 	youtubeDislikeRepo   *repo.YouTubeVideoRepo
 }
 
-func NewAPI(dislikeRepo *repo.SingleDislikeRepo, aggregateDislikeRepo *repo.AggregateDislikeRepo, youtubeDislikeRepo *repo.YouTubeVideoRepo) *API {
+func New(dislikeRepo *repo.SingleDislikeRepo, aggregateDislikeRepo *repo.AggregateDislikeRepo, youtubeDislikeRepo *repo.YouTubeVideoRepo) *API {
 	return &API{
-		router:               mux.NewRouter(),
 		dislikeRepo:          dislikeRepo,
 		aggregateDislikeRepo: aggregateDislikeRepo,
 		youtubeDislikeRepo:   youtubeDislikeRepo,
 	}
 }
 
-func (a *API) Start() error {
-	a.router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+func (a *API) DefineRoutes() *mux.Router {
+	router := mux.NewRouter()
+	router.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(200)
+		writer.Write([]byte("Hello World"))
 	})
-	a.router.HandleFunc("/dislike", a.AddSingleDislike).Methods("POST")
-	a.router.HandleFunc("/add_youtube_video", a.AddYouTubeVideo).Methods("POST")
-
-	return http.ListenAndServe(":5000", a.router)
+	router.HandleFunc("/add_single_dislike", a.AddSingleDislike).Methods("POST")
+	router.HandleFunc("/add_youtube_video", a.AddYouTubeVideo).Methods("POST")
+	return router
 }
