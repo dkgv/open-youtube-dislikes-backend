@@ -15,8 +15,8 @@ func NewSingleDislikeRepo(conn *sql.DB) *SingleDislikeRepo {
 	return &SingleDislikeRepo{querier: db.New(conn)}
 }
 
-func (d *SingleDislikeRepo) AddDislike(ctx context.Context, id string, hashedIP string) error {
-	return d.querier.AddDislike(ctx, db.AddDislikeParams{
+func (d *SingleDislikeRepo) Insert(ctx context.Context, id string, hashedIP string) error {
+	return d.querier.InsertDislike(ctx, db.InsertDislikeParams{
 		ID:       id,
 		HashedIp: hashedIP,
 	})

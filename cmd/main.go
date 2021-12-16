@@ -7,6 +7,7 @@ import (
 	"github.com/dkgv/dislikes/internal/database/repo"
 	"github.com/dkgv/dislikes/internal/endpoints"
 	"github.com/dkgv/dislikes/internal/logic/data"
+	"github.com/dkgv/dislikes/internal/logic/ml"
 )
 
 func main() {
@@ -20,7 +21,12 @@ func main() {
 	youtubeVideoRepo := repo.NewYouTubeVideoRepo(conn)
 
 	// Define services
-	dataService := data.New(singleDislikeRepo, youtubeVideoRepo)
+	mlService, err := ml.New()
+	if err != nil {
+		log.Print(err)
+	}
+
+	dataService := data.New(mlService, singleDislikeRepo, youtubeVideoRepo)
 
 	// Initialize API
 	api := endpoints.New(dataService)

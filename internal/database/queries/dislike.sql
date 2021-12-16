@@ -1,4 +1,4 @@
--- name: AddDislike :exec
+-- name: InsertDislike :exec
 INSERT INTO dislike (id, hashed_ip) VALUES ($1, $2);
 
 -- name: GetDislikeCount :one

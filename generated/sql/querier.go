@@ -7,12 +7,12 @@ import (
 )
 
 type Querier interface {
-	AddDislike(ctx context.Context, arg AddDislikeParams) error
-	AddYouTubeVideo(ctx context.Context, arg AddYouTubeVideoParams) error
-	GetAggregateDislikeCount(ctx context.Context, id string) (int32, error)
+	FindAggregateDislikeByID(ctx context.Context, id string) (int32, error)
 	GetDislikeCount(ctx context.Context, id string) (int64, error)
-	SetAggregateDislikeCount(ctx context.Context, arg SetAggregateDislikeCountParams) error
-	UpdateAggregateDislikeCount(ctx context.Context, arg UpdateAggregateDislikeCountParams) error
+	InsertAggregateDislike(ctx context.Context, arg InsertAggregateDislikeParams) error
+	InsertDislike(ctx context.Context, arg InsertDislikeParams) error
+	UpdateAggregateDislike(ctx context.Context, arg UpdateAggregateDislikeParams) error
+	UpsertYouTubeVideo(ctx context.Context, arg UpsertYouTubeVideoParams) error
 }
 
 var _ Querier = (*Queries)(nil)

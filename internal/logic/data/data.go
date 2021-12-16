@@ -7,39 +7,48 @@ import (
 )
 
 type SingleDislikeRepo interface {
-	AddDislike(ctx context.Context, id string, hashedIP string) error
+	Insert(ctx context.Context, id string, hashedIP string) error
 }
 
 type YouTubeVideoRepo interface {
-	AddYouTubeVideo(ctx context.Context, id string, likes, dislikes, views, comments int64) error
+	Upsert(ctx context.Context, id string, likes, dislikes, views, comments int64) error
+}
+
+type MLService interface {
+	Predict(ctx context.Context, details types.VideoDetails) (int64, error)
 }
 
 type Service struct {
 	singleDislikeRepo SingleDislikeRepo
 	youTubeVideoRepo  YouTubeVideoRepo
+	mlService         MLService
 }
 
-func New(singleDislikeRepo SingleDislikeRepo, youTubeVideoRepo YouTubeVideoRepo) *Service {
+func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, youTubeVideoRepo YouTubeVideoRepo) *Service {
 	return &Service{
+		mlService:         mlService,
 		singleDislikeRepo: singleDislikeRepo,
 		youTubeVideoRepo:  youTubeVideoRepo,
 	}
 }
 
-func (s *Service) EstimateDislikes(ctx context.Context, details types.VideoDetails) (types.VideoDetails, error) {
-	dislikes := int64(0)
+func (s *Service) GetDislikes(ctx context.Context, details types.VideoDetails) (types.VideoDetails, error) {
+	prediction, err := s.mlService.Predict(ctx, details)
+	if err != nil {
+		return types.VideoDetails{}, err
+	}
 
 	return types.VideoDetails{
-		Dislikes: dislikes,
+		Dislikes: prediction,
 	}, nil
 }
 
 func (s *Service) AddDislike(ctx context.Context, videoID string) error {
-	return s.singleDislikeRepo.AddDislike(ctx, videoID, "")
+	return s.singleDislikeRepo.Insert(ctx, videoID, "")
 }
 
 func (s *Service) AddYouTubeVideo(ctx context.Context, videoID string, details types.VideoDetails) error {
-	return s.youTubeVideoRepo.AddYouTubeVideo(
+	return s.youTubeVideoRepo.Upsert(
 		ctx,
 		videoID,
 		details.Likes,

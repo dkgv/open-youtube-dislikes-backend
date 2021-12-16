@@ -7,20 +7,6 @@ import (
 	"context"
 )
 
-const addDislike = `-- name: AddDislike :exec
-INSERT INTO dislike (id, hashed_ip) VALUES ($1, $2)
-`
-
-type AddDislikeParams struct {
-	ID       string `json:"id"`
-	HashedIp string `json:"hashed_ip"`
-}
-
-func (q *Queries) AddDislike(ctx context.Context, arg AddDislikeParams) error {
-	_, err := q.exec(ctx, q.addDislikeStmt, addDislike, arg.ID, arg.HashedIp)
-	return err
-}
-
 const getDislikeCount = `-- name: GetDislikeCount :one
 SELECT COUNT(*) AS "count" FROM dislike WHERE id = $1
 `
@@ -30,4 +16,18 @@ func (q *Queries) GetDislikeCount(ctx context.Context, id string) (int64, error)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const insertDislike = `-- name: InsertDislike :exec
+INSERT INTO dislike (id, hashed_ip) VALUES ($1, $2)
+`
+
+type InsertDislikeParams struct {
+	ID       string `json:"id"`
+	HashedIp string `json:"hashed_ip"`
+}
+
+func (q *Queries) InsertDislike(ctx context.Context, arg InsertDislikeParams) error {
+	_, err := q.exec(ctx, q.insertDislikeStmt, insertDislike, arg.ID, arg.HashedIp)
+	return err
 }

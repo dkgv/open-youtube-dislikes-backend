@@ -24,9 +24,11 @@ type Video struct {
 }
 
 type YoutubeVideo struct {
-	ID       string `json:"id"`
-	Likes    int64  `json:"likes"`
-	Dislikes int64  `json:"dislikes"`
-	Views    int64  `json:"views"`
-	Comments int64  `json:"comments"`
+	ID          string    `json:"id"`
+	Likes       int64     `json:"likes"`
+	Dislikes    int64     `json:"dislikes"`
+	Views       int64     `json:"views"`
+	Comments    int64     `json:"comments"`
+	Subscribers int32     `json:"subscribers"`
+	CreatedAt   time.Time `json:"created_at"`
 }

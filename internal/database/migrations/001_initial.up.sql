@@ -19,7 +19,9 @@ CREATE TABLE IF NOT EXISTS youtube_video (
     likes BIGINT NOT NULL,
     dislikes BIGINT NOT NULL,
     views BIGINT NOT NULL,
-    comments BIGINT NOT NULL
+    comments BIGINT NOT NULL,
+    subscribers INT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS video_id_index ON youtube_video (id);

@@ -15,12 +15,12 @@ func NewAggregateDislikeRepo(conn *sql.DB) *AggregateDislikeRepo {
 	return &AggregateDislikeRepo{querier: db.New(conn)}
 }
 
-func (d *AggregateDislikeRepo) GetAggregateDislikeCount(ctx context.Context, contentID string) (int32, error) {
-	return d.querier.GetAggregateDislikeCount(ctx, contentID)
+func (d *AggregateDislikeRepo) FindByID(ctx context.Context, id string) (int32, error) {
+	return d.querier.FindAggregateDislikeByID(ctx, id)
 }
 
-func (d *AggregateDislikeRepo) SetAggregateDislikeCount(ctx context.Context, contentID string, count int32) error {
-	return d.querier.SetAggregateDislikeCount(ctx, db.SetAggregateDislikeCountParams{
+func (d *AggregateDislikeRepo) UpdateByID(ctx context.Context, contentID string, count int32) error {
+	return d.querier.UpdateAggregateDislike(ctx, db.UpdateAggregateDislikeParams{
 		ID:    contentID,
 		Count: count,
 	})

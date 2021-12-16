@@ -20,7 +20,7 @@ func (a *API) GetVideoEstimateDislikes(writer http.ResponseWriter, request *http
 		return
 	}
 
-	stats, err := a.dataService.EstimateDislikes(context.Background(), statsRequest.VideoDetails)
+	stats, err := a.dataService.GetDislikes(context.Background(), statsRequest.VideoDetails)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
