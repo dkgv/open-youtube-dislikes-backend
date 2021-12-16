@@ -9,41 +9,41 @@ import (
 )
 
 const getAggregateDislikeCount = `-- name: GetAggregateDislikeCount :one
-SELECT count FROM aggregate_dislike WHERE content_id = $1
+SELECT count FROM aggregate_dislike WHERE id = $1
 `
 
-func (q *Queries) GetAggregateDislikeCount(ctx context.Context, contentID string) (int32, error) {
-	row := q.queryRow(ctx, q.getAggregateDislikeCountStmt, getAggregateDislikeCount, contentID)
+func (q *Queries) GetAggregateDislikeCount(ctx context.Context, id string) (int32, error) {
+	row := q.queryRow(ctx, q.getAggregateDislikeCountStmt, getAggregateDislikeCount, id)
 	var count int32
 	err := row.Scan(&count)
 	return count, err
 }
 
 const setAggregateDislikeCount = `-- name: SetAggregateDislikeCount :exec
-INSERT INTO aggregate_dislike (content_id, count) VALUES ($1, $2)
+INSERT INTO aggregate_dislike (id, count) VALUES ($1, $2)
 `
 
 type SetAggregateDislikeCountParams struct {
-	ContentID string `json:"content_id"`
-	Count     int32  `json:"count"`
+	ID    string `json:"id"`
+	Count int32  `json:"count"`
 }
 
 func (q *Queries) SetAggregateDislikeCount(ctx context.Context, arg SetAggregateDislikeCountParams) error {
-	_, err := q.exec(ctx, q.setAggregateDislikeCountStmt, setAggregateDislikeCount, arg.ContentID, arg.Count)
+	_, err := q.exec(ctx, q.setAggregateDislikeCountStmt, setAggregateDislikeCount, arg.ID, arg.Count)
 	return err
 }
 
 const updateAggregateDislikeCount = `-- name: UpdateAggregateDislikeCount :exec
-UPDATE aggregate_dislike SET count = $2, updated_at = $3 WHERE content_id = $1
+UPDATE aggregate_dislike SET count = $2, updated_at = $3 WHERE id = $1
 `
 
 type UpdateAggregateDislikeCountParams struct {
-	ContentID string    `json:"content_id"`
+	ID        string    `json:"id"`
 	Count     int32     `json:"count"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (q *Queries) UpdateAggregateDislikeCount(ctx context.Context, arg UpdateAggregateDislikeCountParams) error {
-	_, err := q.exec(ctx, q.updateAggregateDislikeCountStmt, updateAggregateDislikeCount, arg.ContentID, arg.Count, arg.UpdatedAt)
+	_, err := q.exec(ctx, q.updateAggregateDislikeCountStmt, updateAggregateDislikeCount, arg.ID, arg.Count, arg.UpdatedAt)
 	return err
 }

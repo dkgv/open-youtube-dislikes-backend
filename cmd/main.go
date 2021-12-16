@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
-	"net/http"
 
-	"github.com/dkgv/dislikes/internal/api"
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/database/repo"
+	"github.com/dkgv/dislikes/internal/endpoints"
+	"github.com/dkgv/dislikes/internal/logic/data"
 )
 
 func main() {
@@ -15,15 +15,14 @@ func main() {
 		log.Print(err)
 	}
 
-	log.Print("Established database connection")
-
+	// Define repositories
 	singleDislikeRepo := repo.NewSingleDislikeRepo(conn)
-	aggregateDislikeRepo := repo.NewAggregateDislikeRepo(conn)
 	youtubeVideoRepo := repo.NewYouTubeVideoRepo(conn)
 
-	log.Print("Created repositories")
+	// Define services
+	dataService := data.New(singleDislikeRepo, youtubeVideoRepo)
 
-	api := api.New(singleDislikeRepo, aggregateDislikeRepo, youtubeVideoRepo)
-	routes := api.DefineRoutes()
-	log.Fatal(http.ListenAndServe(":5000", routes))
+	// Initialize API
+	api := endpoints.New(dataService)
+	api.Launch()
 }

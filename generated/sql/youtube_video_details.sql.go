@@ -8,24 +8,24 @@ import (
 )
 
 const addYouTubeVideo = `-- name: AddYouTubeVideo :exec
-INSERT INTO youtube_video (content_id, likes, dislikes, views, comment_count) VALUES ($1, $2, $3, $4, $5)
+INSERT INTO youtube_video (id, likes, dislikes, views, comments) VALUES ($1, $2, $3, $4, $5)
 `
 
 type AddYouTubeVideoParams struct {
-	ContentID    string `json:"content_id"`
-	Likes        int32  `json:"likes"`
-	Dislikes     int32  `json:"dislikes"`
-	Views        int32  `json:"views"`
-	CommentCount int32  `json:"comment_count"`
+	ID       string `json:"id"`
+	Likes    int64  `json:"likes"`
+	Dislikes int64  `json:"dislikes"`
+	Views    int64  `json:"views"`
+	Comments int64  `json:"comments"`
 }
 
 func (q *Queries) AddYouTubeVideo(ctx context.Context, arg AddYouTubeVideoParams) error {
 	_, err := q.exec(ctx, q.addYouTubeVideoStmt, addYouTubeVideo,
-		arg.ContentID,
+		arg.ID,
 		arg.Likes,
 		arg.Dislikes,
 		arg.Views,
-		arg.CommentCount,
+		arg.Comments,
 	)
 	return err
 }

@@ -15,13 +15,13 @@ func NewSingleDislikeRepo(conn *sql.DB) *SingleDislikeRepo {
 	return &SingleDislikeRepo{querier: db.New(conn)}
 }
 
-func (d *SingleDislikeRepo) AddDislike(ctx context.Context, contentID string, hashedIP string) error {
+func (d *SingleDislikeRepo) AddDislike(ctx context.Context, id string, hashedIP string) error {
 	return d.querier.AddDislike(ctx, db.AddDislikeParams{
-		ContentID: contentID,
-		HashedIp:  hashedIP,
+		ID:       id,
+		HashedIp: hashedIP,
 	})
 }
 
-func (d SingleDislikeRepo) GetDislikeCount(ctx context.Context, contentID string) (int64, error) {
-	return d.querier.GetDislikeCount(ctx, contentID)
+func (d SingleDislikeRepo) GetDislikeCount(ctx context.Context, videoID string) (int64, error) {
+	return d.querier.GetDislikeCount(ctx, videoID)
 }

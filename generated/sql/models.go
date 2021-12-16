@@ -7,26 +7,26 @@ import (
 )
 
 type AggregateDislike struct {
-	ContentID string    `json:"content_id"`
+	ID        string    `json:"id"`
 	Count     int32     `json:"count"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type Content struct {
-	ExternalID     string `json:"external_id"`
-	ExternalIDHash string `json:"external_id_hash"`
-}
-
-type SingleDislike struct {
-	ContentID string    `json:"content_id"`
+type Dislike struct {
+	ID        string    `json:"id"`
 	HashedIp  string    `json:"hashed_ip"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type Video struct {
+	ID     string `json:"id"`
+	IDHash string `json:"id_hash"`
+}
+
 type YoutubeVideo struct {
-	ContentID    string `json:"content_id"`
-	Likes        int32  `json:"likes"`
-	Dislikes     int32  `json:"dislikes"`
-	Views        int32  `json:"views"`
-	CommentCount int32  `json:"comment_count"`
+	ID       string `json:"id"`
+	Likes    int64  `json:"likes"`
+	Dislikes int64  `json:"dislikes"`
+	Views    int64  `json:"views"`
+	Comments int64  `json:"comments"`
 }

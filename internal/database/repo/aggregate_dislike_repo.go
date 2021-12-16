@@ -21,7 +21,7 @@ func (d *AggregateDislikeRepo) GetAggregateDislikeCount(ctx context.Context, con
 
 func (d *AggregateDislikeRepo) SetAggregateDislikeCount(ctx context.Context, contentID string, count int32) error {
 	return d.querier.SetAggregateDislikeCount(ctx, db.SetAggregateDislikeCountParams{
-		ContentID: contentID,
-		Count:     count,
+		ID:    contentID,
+		Count: count,
 	})
 }

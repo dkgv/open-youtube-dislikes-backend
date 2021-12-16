@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -26,5 +27,6 @@ func NewConnection() (*sql.DB, error) {
 		return nil, err
 	}
 
+	log.Println("Established connection to database")
 	return conn, nil
 }
