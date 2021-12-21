@@ -15,8 +15,10 @@ func (a *API) PostVideoAddDislike(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
+	ip := GetIP(request)
+
 	go func() {
-		_ = a.dataService.AddDislike(context.Background(), id)
+		_ = a.dataService.AddDislike(context.Background(), id, ip)
 	}()
 	writer.WriteHeader(http.StatusOK)
 }

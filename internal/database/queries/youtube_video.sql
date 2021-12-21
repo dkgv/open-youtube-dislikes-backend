@@ -1,3 +1,6 @@
+-- name: FindYouTubeVideoByID :one
+SELECT * FROM youtube_video WHERE id = $1;
+
 -- name: UpsertYouTubeVideo :exec
 INSERT INTO youtube_video
     (id, likes, dislikes, views, comments, subscribers)

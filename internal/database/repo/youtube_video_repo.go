@@ -15,8 +15,12 @@ func NewYouTubeVideoRepo(conn *sql.DB) *YouTubeVideoRepo {
 	return &YouTubeVideoRepo{querier: db.New(conn)}
 }
 
-func (d *YouTubeVideoRepo) Upsert(ctx context.Context, id string, likes, dislikes, views, comments int64) error {
-	return d.querier.UpsertYouTubeVideo(ctx, db.UpsertYouTubeVideoParams{
+func (y *YouTubeVideoRepo) FindByID(ctx context.Context, id string) (db.YoutubeVideo, error) {
+	return y.querier.FindYouTubeVideoByID(ctx, id)
+}
+
+func (y *YouTubeVideoRepo) Upsert(ctx context.Context, id string, likes, dislikes, views, comments int64) error {
+	return y.querier.UpsertYouTubeVideo(ctx, db.UpsertYouTubeVideoParams{
 		ID:       id,
 		Likes:    likes,
 		Dislikes: dislikes,

@@ -7,3 +7,10 @@ type VideoDetails struct {
 	Comments    int64 `json:"comments"`
 	PublishedAt int64 `json:"published_at"`
 }
+
+func (v VideoDetails) LikePerView() float64 {
+	if v.Views == 0 {
+		return 0
+	}
+	return float64(v.Likes) / float64(v.Views) / 100
+}

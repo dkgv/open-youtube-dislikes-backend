@@ -7,6 +7,25 @@ import (
 	"context"
 )
 
+const findYouTubeVideoByID = `-- name: FindYouTubeVideoByID :one
+SELECT id, likes, dislikes, views, comments, subscribers, created_at FROM youtube_video WHERE id = $1
+`
+
+func (q *Queries) FindYouTubeVideoByID(ctx context.Context, id string) (YoutubeVideo, error) {
+	row := q.queryRow(ctx, q.findYouTubeVideoByIDStmt, findYouTubeVideoByID, id)
+	var i YoutubeVideo
+	err := row.Scan(
+		&i.ID,
+		&i.Likes,
+		&i.Dislikes,
+		&i.Views,
+		&i.Comments,
+		&i.Subscribers,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const upsertYouTubeVideo = `-- name: UpsertYouTubeVideo :exec
 INSERT INTO youtube_video
     (id, likes, dislikes, views, comments, subscribers)

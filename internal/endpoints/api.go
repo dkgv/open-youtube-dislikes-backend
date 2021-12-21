@@ -33,3 +33,17 @@ func (a *API) defineRoutes() *mux.Router {
 	router.HandleFunc("/video/{id}/estimate_dislikes", a.GetVideoEstimateDislikes).Methods("GET")
 	return router
 }
+
+func GetIP(r *http.Request) string {
+	ip := r.Header.Get("X-Forwarded-For")
+	if len(ip) == 0 {
+		ip = r.Header.Get("CF-Connecting-IP")
+	}
+	if len(ip) == 0 {
+		ip = r.Header.Get("X-Real-IP")
+	}
+	if len(ip) == 0 {
+		ip = r.RemoteAddr
+	}
+	return ip
+}

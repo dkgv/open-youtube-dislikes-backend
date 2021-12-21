@@ -8,6 +8,7 @@ import (
 
 type Querier interface {
 	FindAggregateDislikeByID(ctx context.Context, id string) (int32, error)
+	FindYouTubeVideoByID(ctx context.Context, id string) (YoutubeVideo, error)
 	GetDislikeCount(ctx context.Context, id string) (int64, error)
 	InsertAggregateDislike(ctx context.Context, arg InsertAggregateDislikeParams) error
 	InsertDislike(ctx context.Context, arg InsertDislikeParams) error

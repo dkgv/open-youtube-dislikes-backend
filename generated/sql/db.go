@@ -25,6 +25,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findAggregateDislikeByIDStmt, err = db.PrepareContext(ctx, findAggregateDislikeByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAggregateDislikeByID: %w", err)
 	}
+	if q.findYouTubeVideoByIDStmt, err = db.PrepareContext(ctx, findYouTubeVideoByID); err != nil {
+		return nil, fmt.Errorf("error preparing query FindYouTubeVideoByID: %w", err)
+	}
 	if q.getDislikeCountStmt, err = db.PrepareContext(ctx, getDislikeCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDislikeCount: %w", err)
 	}
@@ -48,6 +51,11 @@ func (q *Queries) Close() error {
 	if q.findAggregateDislikeByIDStmt != nil {
 		if cerr := q.findAggregateDislikeByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findAggregateDislikeByIDStmt: %w", cerr)
+		}
+	}
+	if q.findYouTubeVideoByIDStmt != nil {
+		if cerr := q.findYouTubeVideoByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findYouTubeVideoByIDStmt: %w", cerr)
 		}
 	}
 	if q.getDislikeCountStmt != nil {
@@ -115,6 +123,7 @@ type Queries struct {
 	db                           DBTX
 	tx                           *sql.Tx
 	findAggregateDislikeByIDStmt *sql.Stmt
+	findYouTubeVideoByIDStmt     *sql.Stmt
 	getDislikeCountStmt          *sql.Stmt
 	insertAggregateDislikeStmt   *sql.Stmt
 	insertDislikeStmt            *sql.Stmt
@@ -127,6 +136,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                           tx,
 		tx:                           tx,
 		findAggregateDislikeByIDStmt: q.findAggregateDislikeByIDStmt,
+		findYouTubeVideoByIDStmt:     q.findYouTubeVideoByIDStmt,
 		getDislikeCountStmt:          q.getDislikeCountStmt,
 		insertAggregateDislikeStmt:   q.insertAggregateDislikeStmt,
 		insertDislikeStmt:            q.insertDislikeStmt,

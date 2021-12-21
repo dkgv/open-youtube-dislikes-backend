@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"crypto/sha256"
 
 	"github.com/dkgv/dislikes/internal/types"
 )
@@ -43,8 +44,10 @@ func (s *Service) GetDislikes(ctx context.Context, details types.VideoDetails) (
 	}, nil
 }
 
-func (s *Service) AddDislike(ctx context.Context, videoID string) error {
-	return s.singleDislikeRepo.Insert(ctx, videoID, "")
+func (s *Service) AddDislike(ctx context.Context, videoID string, ip string) error {
+	hashedIPBytes := sha256.Sum256([]byte(ip))
+	hashedIP := string(hashedIPBytes[:])
+	return s.singleDislikeRepo.Insert(ctx, videoID, hashedIP)
 }
 
 func (s *Service) AddYouTubeVideo(ctx context.Context, videoID string, details types.VideoDetails) error {
