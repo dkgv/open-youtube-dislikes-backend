@@ -19,15 +19,15 @@ func (q *Queries) GetDislikeCount(ctx context.Context, id string) (int64, error)
 }
 
 const insertDislike = `-- name: InsertDislike :exec
-INSERT INTO dislike (id, hashed_ip) VALUES ($1, $2)
+INSERT INTO dislike (id, ip_hash) VALUES ($1, $2)
 `
 
 type InsertDislikeParams struct {
-	ID       string `json:"id"`
-	HashedIp string `json:"hashed_ip"`
+	ID     string `json:"id"`
+	IpHash string `json:"ip_hash"`
 }
 
 func (q *Queries) InsertDislike(ctx context.Context, arg InsertDislikeParams) error {
-	_, err := q.exec(ctx, q.insertDislikeStmt, insertDislike, arg.ID, arg.HashedIp)
+	_, err := q.exec(ctx, q.insertDislikeStmt, insertDislike, arg.ID, arg.IpHash)
 	return err
 }

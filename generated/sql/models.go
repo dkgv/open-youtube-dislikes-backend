@@ -14,21 +14,19 @@ type AggregateDislike struct {
 
 type Dislike struct {
 	ID        string    `json:"id"`
-	HashedIp  string    `json:"hashed_ip"`
+	IpHash    string    `json:"ip_hash"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type Video struct {
-	ID     string `json:"id"`
-	IDHash string `json:"id_hash"`
-}
-
-type YoutubeVideo struct {
 	ID          string    `json:"id"`
+	IDHash      string    `json:"id_hash"`
 	Likes       int64     `json:"likes"`
 	Dislikes    int64     `json:"dislikes"`
 	Views       int64     `json:"views"`
 	Comments    int64     `json:"comments"`
-	Subscribers int32     `json:"subscribers"`
+	Subscribers int64     `json:"subscribers"`
+	PublishedAt int64     `json:"published_at"`
 	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }

@@ -8,12 +8,13 @@ import (
 
 type Querier interface {
 	FindAggregateDislikeByID(ctx context.Context, id string) (int32, error)
-	FindYouTubeVideoByID(ctx context.Context, id string) (YoutubeVideo, error)
+	FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]Video, error)
+	FindVideoDetailsByID(ctx context.Context, id string) (Video, error)
 	GetDislikeCount(ctx context.Context, id string) (int64, error)
 	InsertAggregateDislike(ctx context.Context, arg InsertAggregateDislikeParams) error
 	InsertDislike(ctx context.Context, arg InsertDislikeParams) error
 	UpdateAggregateDislike(ctx context.Context, arg UpdateAggregateDislikeParams) error
-	UpsertYouTubeVideo(ctx context.Context, arg UpsertYouTubeVideoParams) error
+	UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetailsParams) error
 }
 
 var _ Querier = (*Queries)(nil)

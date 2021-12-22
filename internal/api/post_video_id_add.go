@@ -1,4 +1,4 @@
-package endpoints
+package api
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 )
 
 type PostVideoRequest struct {
-	types.VideoDetails
+	types.Video
 }
 
-func (a *API) PostVideoAdd(writer http.ResponseWriter, request *http.Request) {
+func (a *API) PostVideoAddV1(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, ok := vars["id"]
 	if !ok {
@@ -29,7 +29,7 @@ func (a *API) PostVideoAdd(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	go func() {
-		_ = a.dataService.AddYouTubeVideo(context.Background(), id, videoRequest.VideoDetails)
+		_ = a.dataService.AddVideo(context.Background(), id, videoRequest.Video)
 	}()
 	writer.WriteHeader(http.StatusOK)
 }

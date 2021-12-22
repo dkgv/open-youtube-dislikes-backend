@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
+	"github.com/dkgv/dislikes/internal/api"
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/database/repo"
-	"github.com/dkgv/dislikes/internal/endpoints"
 	"github.com/dkgv/dislikes/internal/logic/data"
 	"github.com/dkgv/dislikes/internal/logic/ml"
 )
@@ -18,7 +18,7 @@ func main() {
 
 	// Define repositories
 	singleDislikeRepo := repo.NewSingleDislikeRepo(conn)
-	youtubeVideoRepo := repo.NewYouTubeVideoRepo(conn)
+	videoRepo := repo.NewVideoRepo(conn)
 
 	// Define services
 	mlService, err := ml.New()
@@ -26,9 +26,8 @@ func main() {
 		log.Print(err)
 	}
 
-	dataService := data.New(mlService, singleDislikeRepo, youtubeVideoRepo)
+	dataService := data.New(mlService, singleDislikeRepo, videoRepo)
 
-	// Initialize API
-	api := endpoints.New(dataService)
-	api.Launch()
+	instance := api.New(dataService)
+	instance.Run()
 }

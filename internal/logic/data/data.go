@@ -3,7 +3,10 @@ package data
 import (
 	"context"
 	"crypto/sha256"
+	"math"
 
+	db "github.com/dkgv/dislikes/generated/sql"
+	"github.com/dkgv/dislikes/internal/mappers"
 	"github.com/dkgv/dislikes/internal/types"
 )
 
@@ -11,52 +14,82 @@ type SingleDislikeRepo interface {
 	Insert(ctx context.Context, id string, hashedIP string) error
 }
 
-type YouTubeVideoRepo interface {
-	Upsert(ctx context.Context, id string, likes, dislikes, views, comments int64) error
+type VideoRepo interface {
+	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views, comments, subscribers uint32) error
+	FindNByHash(ctx context.Context, idHash string, maxCount int32) ([]db.Video, error)
 }
 
 type MLService interface {
-	Predict(ctx context.Context, details types.VideoDetails) (int64, error)
+	Predict(ctx context.Context, apiVersion int, video types.Video) (uint32, error)
 }
 
 type Service struct {
 	singleDislikeRepo SingleDislikeRepo
-	youTubeVideoRepo  YouTubeVideoRepo
+	videoRepo         VideoRepo
 	mlService         MLService
 }
 
-func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, youTubeVideoRepo YouTubeVideoRepo) *Service {
+func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, videoRepo VideoRepo) *Service {
 	return &Service{
 		mlService:         mlService,
 		singleDislikeRepo: singleDislikeRepo,
-		youTubeVideoRepo:  youTubeVideoRepo,
+		videoRepo:         videoRepo,
 	}
 }
 
-func (s *Service) GetDislikes(ctx context.Context, details types.VideoDetails) (types.VideoDetails, error) {
-	prediction, err := s.mlService.Predict(ctx, details)
+func (s *Service) PredictDislikes(ctx context.Context, apiVersion int, video types.Video) (uint32, error) {
+	prediction, err := s.mlService.Predict(ctx, apiVersion, video)
 	if err != nil {
-		return types.VideoDetails{}, err
+		return 0, err
 	}
 
-	return types.VideoDetails{
-		Dislikes: prediction,
-	}, nil
+	return prediction, nil
+}
+
+func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion int, video types.Video, count int32) ([]types.DislikeEstimation, error) {
+	// Retrieve at most 5 videos matching hash
+	count = int32(math.Min(5.0, float64(count)))
+	dbVideos, err := s.videoRepo.FindNByHash(ctx, video.IDHash, count)
+	if err != nil {
+		return nil, err
+	}
+
+	estimations := make([]types.DislikeEstimation, len(dbVideos))
+	for i := range dbVideos {
+		dislikes, err := s.PredictDislikes(ctx, apiVersion, mappers.DBVideoToVideo(dbVideos[i]))
+		if err != nil {
+			continue
+		}
+
+		estimations[i] = types.DislikeEstimation{
+			IDHash:   dbVideos[i].IDHash,
+			Dislikes: dislikes,
+		}
+	}
+	return estimations, nil
 }
 
 func (s *Service) AddDislike(ctx context.Context, videoID string, ip string) error {
-	hashedIPBytes := sha256.Sum256([]byte(ip))
-	hashedIP := string(hashedIPBytes[:])
+	// TODO: don't mask IP by hashing, can be bruteforced
+	hashedIP := hashString(ip)
 	return s.singleDislikeRepo.Insert(ctx, videoID, hashedIP)
 }
 
-func (s *Service) AddYouTubeVideo(ctx context.Context, videoID string, details types.VideoDetails) error {
-	return s.youTubeVideoRepo.Upsert(
+func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {
+	videoIDHash := hashString(videoID)
+	return s.videoRepo.Upsert(
 		ctx,
 		videoID,
+		videoIDHash,
 		details.Likes,
 		details.Dislikes,
 		details.Views,
 		details.Comments,
+		details.Subscribers,
 	)
+}
+
+func hashString(input string) string {
+	hashedInputBytes := sha256.Sum256([]byte(input))
+	return string(hashedInputBytes[:])
 }

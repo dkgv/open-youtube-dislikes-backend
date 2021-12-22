@@ -25,8 +25,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findAggregateDislikeByIDStmt, err = db.PrepareContext(ctx, findAggregateDislikeByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAggregateDislikeByID: %w", err)
 	}
-	if q.findYouTubeVideoByIDStmt, err = db.PrepareContext(ctx, findYouTubeVideoByID); err != nil {
-		return nil, fmt.Errorf("error preparing query FindYouTubeVideoByID: %w", err)
+	if q.findNVideosByIDHashStmt, err = db.PrepareContext(ctx, findNVideosByIDHash); err != nil {
+		return nil, fmt.Errorf("error preparing query FindNVideosByIDHash: %w", err)
+	}
+	if q.findVideoDetailsByIDStmt, err = db.PrepareContext(ctx, findVideoDetailsByID); err != nil {
+		return nil, fmt.Errorf("error preparing query FindVideoDetailsByID: %w", err)
 	}
 	if q.getDislikeCountStmt, err = db.PrepareContext(ctx, getDislikeCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDislikeCount: %w", err)
@@ -40,8 +43,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.updateAggregateDislikeStmt, err = db.PrepareContext(ctx, updateAggregateDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateAggregateDislike: %w", err)
 	}
-	if q.upsertYouTubeVideoStmt, err = db.PrepareContext(ctx, upsertYouTubeVideo); err != nil {
-		return nil, fmt.Errorf("error preparing query UpsertYouTubeVideo: %w", err)
+	if q.upsertVideoDetailsStmt, err = db.PrepareContext(ctx, upsertVideoDetails); err != nil {
+		return nil, fmt.Errorf("error preparing query UpsertVideoDetails: %w", err)
 	}
 	return &q, nil
 }
@@ -53,9 +56,14 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findAggregateDislikeByIDStmt: %w", cerr)
 		}
 	}
-	if q.findYouTubeVideoByIDStmt != nil {
-		if cerr := q.findYouTubeVideoByIDStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing findYouTubeVideoByIDStmt: %w", cerr)
+	if q.findNVideosByIDHashStmt != nil {
+		if cerr := q.findNVideosByIDHashStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findNVideosByIDHashStmt: %w", cerr)
+		}
+	}
+	if q.findVideoDetailsByIDStmt != nil {
+		if cerr := q.findVideoDetailsByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findVideoDetailsByIDStmt: %w", cerr)
 		}
 	}
 	if q.getDislikeCountStmt != nil {
@@ -78,9 +86,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updateAggregateDislikeStmt: %w", cerr)
 		}
 	}
-	if q.upsertYouTubeVideoStmt != nil {
-		if cerr := q.upsertYouTubeVideoStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing upsertYouTubeVideoStmt: %w", cerr)
+	if q.upsertVideoDetailsStmt != nil {
+		if cerr := q.upsertVideoDetailsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing upsertVideoDetailsStmt: %w", cerr)
 		}
 	}
 	return err
@@ -123,12 +131,13 @@ type Queries struct {
 	db                           DBTX
 	tx                           *sql.Tx
 	findAggregateDislikeByIDStmt *sql.Stmt
-	findYouTubeVideoByIDStmt     *sql.Stmt
+	findNVideosByIDHashStmt      *sql.Stmt
+	findVideoDetailsByIDStmt     *sql.Stmt
 	getDislikeCountStmt          *sql.Stmt
 	insertAggregateDislikeStmt   *sql.Stmt
 	insertDislikeStmt            *sql.Stmt
 	updateAggregateDislikeStmt   *sql.Stmt
-	upsertYouTubeVideoStmt       *sql.Stmt
+	upsertVideoDetailsStmt       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -136,11 +145,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                           tx,
 		tx:                           tx,
 		findAggregateDislikeByIDStmt: q.findAggregateDislikeByIDStmt,
-		findYouTubeVideoByIDStmt:     q.findYouTubeVideoByIDStmt,
+		findNVideosByIDHashStmt:      q.findNVideosByIDHashStmt,
+		findVideoDetailsByIDStmt:     q.findVideoDetailsByIDStmt,
 		getDislikeCountStmt:          q.getDislikeCountStmt,
 		insertAggregateDislikeStmt:   q.insertAggregateDislikeStmt,
 		insertDislikeStmt:            q.insertDislikeStmt,
 		updateAggregateDislikeStmt:   q.updateAggregateDislikeStmt,
-		upsertYouTubeVideoStmt:       q.upsertYouTubeVideoStmt,
+		upsertVideoDetailsStmt:       q.upsertVideoDetailsStmt,
 	}
 }

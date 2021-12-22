@@ -1,4 +1,4 @@
-package endpoints
+package api
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (a *API) PostVideoAddDislike(writer http.ResponseWriter, request *http.Request) {
+func (a *API) PostVideoAddDislikeV1(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, ok := vars["id"]
 	if !ok {
