@@ -22,6 +22,9 @@ func New(db DBTX) *Queries {
 func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	q := Queries{db: db}
 	var err error
+	if q.deleteDislikeStmt, err = db.PrepareContext(ctx, deleteDislike); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteDislike: %w", err)
+	}
 	if q.findAggregateDislikeByIDStmt, err = db.PrepareContext(ctx, findAggregateDislikeByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAggregateDislikeByID: %w", err)
 	}
@@ -51,6 +54,11 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 
 func (q *Queries) Close() error {
 	var err error
+	if q.deleteDislikeStmt != nil {
+		if cerr := q.deleteDislikeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteDislikeStmt: %w", cerr)
+		}
+	}
 	if q.findAggregateDislikeByIDStmt != nil {
 		if cerr := q.findAggregateDislikeByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findAggregateDislikeByIDStmt: %w", cerr)
@@ -130,6 +138,7 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 type Queries struct {
 	db                           DBTX
 	tx                           *sql.Tx
+	deleteDislikeStmt            *sql.Stmt
 	findAggregateDislikeByIDStmt *sql.Stmt
 	findNVideosByIDHashStmt      *sql.Stmt
 	findVideoDetailsByIDStmt     *sql.Stmt
@@ -144,6 +153,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
 		db:                           tx,
 		tx:                           tx,
+		deleteDislikeStmt:            q.deleteDislikeStmt,
 		findAggregateDislikeByIDStmt: q.findAggregateDislikeByIDStmt,
 		findNVideosByIDHashStmt:      q.findNVideosByIDHashStmt,
 		findVideoDetailsByIDStmt:     q.findVideoDetailsByIDStmt,

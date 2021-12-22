@@ -7,6 +7,20 @@ import (
 	"context"
 )
 
+const deleteDislike = `-- name: DeleteDislike :exec
+DELETE FROM dislike WHERE id = $1 AND ip_hash = $2
+`
+
+type DeleteDislikeParams struct {
+	ID     string `json:"id"`
+	IpHash string `json:"ip_hash"`
+}
+
+func (q *Queries) DeleteDislike(ctx context.Context, arg DeleteDislikeParams) error {
+	_, err := q.exec(ctx, q.deleteDislikeStmt, deleteDislike, arg.ID, arg.IpHash)
+	return err
+}
+
 const getDislikeCount = `-- name: GetDislikeCount :one
 SELECT COUNT(*) AS "count" FROM dislike WHERE id = $1
 `

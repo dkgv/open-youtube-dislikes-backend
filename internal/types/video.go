@@ -3,6 +3,7 @@ package types
 import "time"
 
 type Video struct {
+	ID          string `json:"id,omitempty"`
 	IDHash      string `json:"id_hash,omitempty"`
 	Views       uint32 `json:"views,omitempty"`
 	Likes       uint32 `json:"likes,omitempty"`

@@ -12,6 +12,7 @@ import (
 
 type SingleDislikeRepo interface {
 	Insert(ctx context.Context, id string, hashedIP string) error
+	Delete(ctx context.Context, id string, hashedIP string) error
 }
 
 type VideoRepo interface {
@@ -70,9 +71,11 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 }
 
 func (s *Service) AddDislike(ctx context.Context, videoID string, ip string) error {
-	// TODO: don't mask IP by hashing, can be bruteforced
-	hashedIP := hashString(ip)
-	return s.singleDislikeRepo.Insert(ctx, videoID, hashedIP)
+	return s.singleDislikeRepo.Insert(ctx, videoID, hashString(ip))
+}
+
+func (s *Service) RemoveDislike(ctx context.Context, videoID string, ip string) error {
+	return s.singleDislikeRepo.Delete(ctx, videoID, hashString(ip))
 }
 
 func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {
@@ -90,6 +93,7 @@ func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Vi
 }
 
 func hashString(input string) string {
+	// TODO: don't mask IP by hashing, can be bruteforced
 	hashedInputBytes := sha256.Sum256([]byte(input))
 	return string(hashedInputBytes[:])
 }
