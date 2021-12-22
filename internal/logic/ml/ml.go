@@ -11,11 +11,11 @@ import (
 )
 
 type Service struct {
-	ensemble *inference.Ensemble
+	modelV1 *inference.Ensemble
 }
 
 func New() (*Service, error) {
-	ensemble, err := xgb.LoadXGBoostFromJSON(
+	modelV1, err := xgb.LoadXGBoostFromJSON(
 		"statics/xgboost.json",
 		"",
 		1,
@@ -27,22 +27,36 @@ func New() (*Service, error) {
 	}
 
 	return &Service{
-		ensemble: ensemble,
+		modelV1: modelV1,
 	}, nil
 }
 
-func (s *Service) Predict(ctx context.Context, details types.VideoDetails) (int64, error) {
+func (s *Service) Predict(ctx context.Context, apiVersion int, video types.Video) (uint32, error) {
+	switch apiVersion {
+	case 1:
+		return s.predictV1(video)
+
+	default:
+		return 0, ErrUnsupportedAPIVersion
+	}
+}
+
+func (s *Service) predictV1(video types.Video) (uint32, error) {
 	input := mat.SparseMatrix{
 		Vectors: []mat.SparseVector{
 			{
-				0: float64(details.Views),
-				1: float64(details.Likes),
-				2: details.LikePerView(),
+				0: float64(video.Views),
+				1: float64(video.Likes),
+				2: video.LikesPerView(),
 			},
 		},
 	}
 
-	output, err := s.ensemble.PredictRegression(input, 0)
+	return tryPredict(s.modelV1, input)
+}
+
+func tryPredict(model *inference.Ensemble, input mat.SparseMatrix) (uint32, error) {
+	output, err := model.PredictRegression(input, 0)
 	if err != nil || len(output.Vectors) == 0 {
 		return 0, err
 	}
@@ -54,5 +68,5 @@ func (s *Service) Predict(ctx context.Context, details types.VideoDetails) (int6
 		return 0, ErrNoPrediction
 	}
 
-	return int64(floats[0]), nil
+	return uint32(floats[0]), nil
 }
