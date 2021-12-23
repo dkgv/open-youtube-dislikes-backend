@@ -13,8 +13,13 @@ type AggregateDislike struct {
 }
 
 type Dislike struct {
+	VideoID   string    `json:"video_id"`
+	UserID    string    `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type User struct {
 	ID        string    `json:"id"`
-	IpHash    string    `json:"ip_hash"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

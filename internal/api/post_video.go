@@ -13,9 +13,14 @@ type PostVideoRequest struct {
 	types.Video
 }
 
-func (a *API) PostVideoAddV1(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	id, ok := vars["id"]
+func (a *API) PostVideoV1(writer http.ResponseWriter, request *http.Request) {
+	userID := request.Header.Get("X-User-ID")
+	if userID == "" {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	videoID, ok := mux.Vars(request)["id"]
 	if !ok {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
@@ -29,7 +34,7 @@ func (a *API) PostVideoAddV1(writer http.ResponseWriter, request *http.Request) 
 	}
 
 	go func() {
-		_ = a.dataService.AddVideo(context.Background(), id, videoRequest.Video)
+		_ = a.dataService.AddVideo(context.Background(), videoID, videoRequest.Video)
 	}()
 	writer.WriteHeader(http.StatusOK)
 }

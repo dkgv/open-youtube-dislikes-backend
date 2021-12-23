@@ -14,13 +14,21 @@ CREATE TABLE IF NOT EXISTS video (
 CREATE INDEX IF NOT EXISTS video_id_index ON video (id);
 CREATE INDEX IF NOT EXISTS video_id_hash_index ON video (id_hash);
 
-CREATE TABLE IF NOT EXISTS dislike (
-    id TEXT NOT NULL REFERENCES video (id),
-    ip_hash TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS "user" (
+    id TEXT NOT NULL PRIMARY KEY,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS video_id_index ON dislike (id);
+CREATE INDEX IF NOT EXISTS user_id_index ON "user" (id);
+
+CREATE TABLE IF NOT EXISTS dislike (
+    video_id TEXT NOT NULL REFERENCES video (id),
+    user_id TEXT NOT NULL REFERENCES "user" (id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS dislike_video_id_index ON dislike (video_id);
+CREATE INDEX IF NOT EXISTS dislike_user_id_index ON dislike (user_id);
 
 CREATE TABLE IF NOT EXISTS aggregate_dislike (
     id TEXT NOT NULL REFERENCES video (id),

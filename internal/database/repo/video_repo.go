@@ -26,7 +26,7 @@ func (v *VideoRepo) FindNByHash(ctx context.Context, idHash string, maxCount int
 	})
 }
 
-func (v *VideoRepo) Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views, comments, subscribers uint32) error {
+func (v *VideoRepo) Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views, comments, subscribers, publishedAt uint32) error {
 	return v.querier.UpsertVideoDetails(ctx, db.UpsertVideoDetailsParams{
 		ID:          id,
 		IDHash:      idHash,
@@ -35,5 +35,6 @@ func (v *VideoRepo) Upsert(ctx context.Context, id string, idHash string, likes,
 		Views:       int64(views),
 		Comments:    int64(comments),
 		Subscribers: int64(subscribers),
+		PublishedAt: int64(publishedAt),
 	})
 }

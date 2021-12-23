@@ -6,18 +6,24 @@ import (
 	"math"
 
 	db "github.com/dkgv/dislikes/generated/sql"
+	"github.com/dkgv/dislikes/internal/database/repo"
 	"github.com/dkgv/dislikes/internal/mappers"
 	"github.com/dkgv/dislikes/internal/types"
 )
 
 type SingleDislikeRepo interface {
-	Insert(ctx context.Context, id string, hashedIP string) error
-	Delete(ctx context.Context, id string, hashedIP string) error
+	Insert(ctx context.Context, videoID string, userID string) error
+	Delete(ctx context.Context, videoID string, userID string) error
 }
 
 type VideoRepo interface {
-	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views, comments, subscribers uint32) error
+	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views, comments, subscribers, publishedAt uint32) error
 	FindNByHash(ctx context.Context, idHash string, maxCount int32) ([]db.Video, error)
+}
+
+type UserRepo interface {
+	FindByID(ctx context.Context, id string) (db.User, error)
+	Insert(ctx context.Context, id string) error
 }
 
 type MLService interface {
@@ -28,13 +34,15 @@ type Service struct {
 	singleDislikeRepo SingleDislikeRepo
 	videoRepo         VideoRepo
 	mlService         MLService
+	userRepo          UserRepo
 }
 
-func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, videoRepo VideoRepo) *Service {
+func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, videoRepo VideoRepo, userRepo *repo.UserRepo) *Service {
 	return &Service{
 		mlService:         mlService,
 		singleDislikeRepo: singleDislikeRepo,
 		videoRepo:         videoRepo,
+		userRepo:          userRepo,
 	}
 }
 
@@ -70,12 +78,22 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 	return estimations, nil
 }
 
-func (s *Service) AddDislike(ctx context.Context, videoID string, ip string) error {
-	return s.singleDislikeRepo.Insert(ctx, videoID, hashString(ip))
+func (s *Service) AddDislike(ctx context.Context, videoID string, userID string) error {
+	err := s.userRepo.Insert(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return s.singleDislikeRepo.Insert(ctx, videoID, userID)
 }
 
-func (s *Service) RemoveDislike(ctx context.Context, videoID string, ip string) error {
-	return s.singleDislikeRepo.Delete(ctx, videoID, hashString(ip))
+func (s *Service) RemoveDislike(ctx context.Context, videoID string, userID string) error {
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil || user == (db.User{}) {
+		return err
+	}
+
+	return s.singleDislikeRepo.Delete(ctx, videoID, userID)
 }
 
 func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {
@@ -89,11 +107,11 @@ func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Vi
 		details.Views,
 		details.Comments,
 		details.Subscribers,
+		details.PublishedAt,
 	)
 }
 
 func hashString(input string) string {
-	// TODO: don't mask IP by hashing, can be bruteforced
 	hashedInputBytes := sha256.Sum256([]byte(input))
 	return string(hashedInputBytes[:])
 }

@@ -74,11 +74,11 @@ func (q *Queries) FindVideoDetailsByID(ctx context.Context, id string) (Video, e
 
 const upsertVideoDetails = `-- name: UpsertVideoDetails :exec
 INSERT INTO video
-    (id, id_hash, likes, dislikes, views, comments, subscribers)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    (id, id_hash, likes, dislikes, views, comments, subscribers, published_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (id) DO
         UPDATE SET likes = $3, dislikes = $4, views = $5, comments = $6, subscribers = $7
-        WHERE likes <= $3 AND dislikes <= $4 AND views < $5 AND comments <= $6 AND subscribers <= $7
+        WHERE likes <= $3 AND dislikes <= $4 AND views < $5 AND comments <= $6 AND subscribers <= $7 AND published_at = $8
 `
 
 type UpsertVideoDetailsParams struct {
@@ -89,6 +89,7 @@ type UpsertVideoDetailsParams struct {
 	Views       int64  `json:"views"`
 	Comments    int64  `json:"comments"`
 	Subscribers int64  `json:"subscribers"`
+	PublishedAt int64  `json:"published_at"`
 }
 
 func (q *Queries) UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetailsParams) error {
@@ -100,6 +101,7 @@ func (q *Queries) UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetails
 		arg.Views,
 		arg.Comments,
 		arg.Subscribers,
+		arg.PublishedAt,
 	)
 	return err
 }

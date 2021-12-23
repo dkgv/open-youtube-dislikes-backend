@@ -10,10 +10,12 @@ type Querier interface {
 	DeleteDislike(ctx context.Context, arg DeleteDislikeParams) error
 	FindAggregateDislikeByID(ctx context.Context, id string) (int32, error)
 	FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]Video, error)
+	FindUserByID(ctx context.Context, id string) (User, error)
 	FindVideoDetailsByID(ctx context.Context, id string) (Video, error)
-	GetDislikeCount(ctx context.Context, id string) (int64, error)
+	GetDislikeCount(ctx context.Context, videoID string) (int64, error)
 	InsertAggregateDislike(ctx context.Context, arg InsertAggregateDislikeParams) error
 	InsertDislike(ctx context.Context, arg InsertDislikeParams) error
+	InsertUser(ctx context.Context, id string) error
 	UpdateAggregateDislike(ctx context.Context, arg UpdateAggregateDislikeParams) error
 	UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetailsParams) error
 }

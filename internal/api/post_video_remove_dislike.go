@@ -7,18 +7,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (a *API) PostVideoRemoveDislikeV1(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	id, ok := vars["id"]
+func (a *API) PostVideoRemoveDislike(writer http.ResponseWriter, request *http.Request) {
+	userID := GetUserID(request)
+	if userID == "" {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	videoID, ok := mux.Vars(request)["id"]
 	if !ok {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	ip := GetIP(request)
-
 	go func() {
-		_ = a.dataService.RemoveDislike(context.Background(), id, ip)
+		_ = a.dataService.RemoveDislike(context.Background(), videoID, userID)
 	}()
 	writer.WriteHeader(http.StatusOK)
 }

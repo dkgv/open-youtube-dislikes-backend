@@ -8,40 +8,40 @@ import (
 )
 
 const deleteDislike = `-- name: DeleteDislike :exec
-DELETE FROM dislike WHERE id = $1 AND ip_hash = $2
+DELETE FROM dislike WHERE video_id = $1 AND user_id = $2
 `
 
 type DeleteDislikeParams struct {
-	ID     string `json:"id"`
-	IpHash string `json:"ip_hash"`
+	VideoID string `json:"video_id"`
+	UserID  string `json:"user_id"`
 }
 
 func (q *Queries) DeleteDislike(ctx context.Context, arg DeleteDislikeParams) error {
-	_, err := q.exec(ctx, q.deleteDislikeStmt, deleteDislike, arg.ID, arg.IpHash)
+	_, err := q.exec(ctx, q.deleteDislikeStmt, deleteDislike, arg.VideoID, arg.UserID)
 	return err
 }
 
 const getDislikeCount = `-- name: GetDislikeCount :one
-SELECT COUNT(*) AS "count" FROM dislike WHERE id = $1
+SELECT COUNT(*) AS "count" FROM dislike WHERE video_id = $1
 `
 
-func (q *Queries) GetDislikeCount(ctx context.Context, id string) (int64, error) {
-	row := q.queryRow(ctx, q.getDislikeCountStmt, getDislikeCount, id)
+func (q *Queries) GetDislikeCount(ctx context.Context, videoID string) (int64, error) {
+	row := q.queryRow(ctx, q.getDislikeCountStmt, getDislikeCount, videoID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const insertDislike = `-- name: InsertDislike :exec
-INSERT INTO dislike (id, ip_hash) VALUES ($1, $2)
+INSERT INTO dislike (video_id, user_id) VALUES ($1, $2)
 `
 
 type InsertDislikeParams struct {
-	ID     string `json:"id"`
-	IpHash string `json:"ip_hash"`
+	VideoID string `json:"video_id"`
+	UserID  string `json:"user_id"`
 }
 
 func (q *Queries) InsertDislike(ctx context.Context, arg InsertDislikeParams) error {
-	_, err := q.exec(ctx, q.insertDislikeStmt, insertDislike, arg.ID, arg.IpHash)
+	_, err := q.exec(ctx, q.insertDislikeStmt, insertDislike, arg.VideoID, arg.UserID)
 	return err
 }
