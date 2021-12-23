@@ -12,7 +12,7 @@ func DBVideoToVideo(video db.Video) types.Video {
 		Likes:       uint32(video.Likes),
 		Dislikes:    uint32(video.Dislikes),
 		Comments:    uint32(video.Comments),
-		PublishedAt: video.PublishedAt,
+		PublishedAt: uint32(video.PublishedAt),
 		Subscribers: uint32(video.Subscribers),
 	}
 }

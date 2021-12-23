@@ -23,8 +23,8 @@ func (a *API) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc(apiURL(1, "video/{id}"), a.PostVideoV1).Methods("POST")
-	router.HandleFunc(apiURL(1, "video/{id}/add_dislike"), a.PostVideoAddDislike).Methods("POST")
-	router.HandleFunc(apiURL(1, "video/{id}/remove_dislike"), a.PostVideoAddDislike).Methods("POST")
+	router.HandleFunc(apiURL(1, "video/{id}/dislike"), a.PostVideoDislike).Methods("POST")
+	router.HandleFunc(apiURL(1, "video/{id}/undislike"), a.PostVideoUndislike).Methods("POST")
 	router.HandleFunc(apiURL(1, "video/{id}/dislikes"), a.GetVideoEstimateDislikesV1).Methods("GET")
 	router.HandleFunc(apiURL(1, "video/{id_hash}/dislikes"), a.GetVideoHashEstimateDislikesV1).Methods("GET")
 

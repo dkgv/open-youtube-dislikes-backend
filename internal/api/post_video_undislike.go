@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (a *API) PostVideoRemoveDislike(writer http.ResponseWriter, request *http.Request) {
+func (a *API) PostVideoUndislike(writer http.ResponseWriter, request *http.Request) {
 	userID := GetUserID(request)
 	if userID == "" {
 		writer.WriteHeader(http.StatusBadRequest)
