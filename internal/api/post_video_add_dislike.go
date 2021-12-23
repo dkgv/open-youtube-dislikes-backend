@@ -16,7 +16,7 @@ type PostVideoAddDislikeRequest struct {
 func (a *API) PostVideoAddDislike(writer http.ResponseWriter, request *http.Request) {
 	userID := GetUserID(request)
 	if userID == "" {
-		writer.WriteHeader(http.StatusUnauthorized)
+		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

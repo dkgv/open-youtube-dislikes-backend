@@ -16,7 +16,7 @@ type PostVideoRequest struct {
 func (a *API) PostVideoV1(writer http.ResponseWriter, request *http.Request) {
 	userID := request.Header.Get("X-User-ID")
 	if userID == "" {
-		writer.WriteHeader(http.StatusUnauthorized)
+		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
