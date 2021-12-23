@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"math"
 
 	db "github.com/dkgv/dislikes/generated/sql"
@@ -46,13 +47,22 @@ func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, videoRepo Vid
 	}
 }
 
-func (s *Service) PredictDislikes(ctx context.Context, apiVersion int, video types.Video) (uint32, error) {
+func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.Video) (string, error) {
 	prediction, err := s.mlService.Predict(ctx, apiVersion, video)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
-	return prediction, nil
+	predictionString := fmt.Sprintf("%d", prediction)
+	if prediction > 1000000 {
+		prediction /= 1000000
+		predictionString = fmt.Sprintf("%dM", prediction)
+	} else if prediction > 1000 {
+		prediction /= 1000
+		predictionString = fmt.Sprintf("%dK", prediction)
+	}
+
+	return predictionString, nil
 }
 
 func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion int, video types.Video, count int32) ([]types.DislikeEstimation, error) {
@@ -65,7 +75,7 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 
 	estimations := make([]types.DislikeEstimation, len(dbVideos))
 	for i := range dbVideos {
-		dislikes, err := s.PredictDislikes(ctx, apiVersion, mappers.DBVideoToVideo(dbVideos[i]))
+		dislikes, err := s.mlService.Predict(ctx, apiVersion, mappers.DBVideoToVideo(dbVideos[i]))
 		if err != nil {
 			continue
 		}

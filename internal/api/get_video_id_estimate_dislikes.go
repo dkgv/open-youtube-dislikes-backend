@@ -13,7 +13,7 @@ type GetVideoEstimateDislikesRequest struct {
 }
 
 type GetVideoEstimateDislikesResponse struct {
-	Dislikes uint32 `json:"dislikes"`
+	Dislikes string `json:"dislikes"`
 }
 
 func (a *API) GetVideoEstimateDislikesV1(writer http.ResponseWriter, request *http.Request) {
@@ -28,7 +28,7 @@ func (a *API) getVideoEstimateDislikes(writer http.ResponseWriter, request *http
 		return
 	}
 
-	dislikes, err := a.dataService.PredictDislikes(context.Background(), apiVersion, requestPayload.Video)
+	dislikes, err := a.dataService.GetDislikes(context.Background(), apiVersion, requestPayload.Video)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return

@@ -25,8 +25,8 @@ func (a *API) Run() {
 	router.HandleFunc(apiURL(1, "video/{id}"), a.PostVideoV1).Methods("POST")
 	router.HandleFunc(apiURL(1, "video/{id}/add_dislike"), a.PostVideoAddDislike).Methods("POST")
 	router.HandleFunc(apiURL(1, "video/{id}/remove_dislike"), a.PostVideoAddDislike).Methods("POST")
-	router.HandleFunc(apiURL(1, "video/estimate_dislikes"), a.GetVideoEstimateDislikesV1).Methods("GET")
-	router.HandleFunc(apiURL(1, "video/{id_hash}/estimate_dislikes"), a.GetVideoHashEstimateDislikesV1).Methods("GET")
+	router.HandleFunc(apiURL(1, "video/{id}/dislikes"), a.GetVideoEstimateDislikesV1).Methods("GET")
+	router.HandleFunc(apiURL(1, "video/{id_hash}/dislikes"), a.GetVideoHashEstimateDislikesV1).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":5000", router))
 }
