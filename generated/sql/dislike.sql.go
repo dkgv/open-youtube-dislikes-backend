@@ -21,6 +21,22 @@ func (q *Queries) DeleteDislike(ctx context.Context, arg DeleteDislikeParams) er
 	return err
 }
 
+const findDislike = `-- name: FindDislike :one
+SELECT video_id, user_id, created_at FROM dislike WHERE video_id = $1 AND user_id = $2
+`
+
+type FindDislikeParams struct {
+	VideoID string `json:"video_id"`
+	UserID  string `json:"user_id"`
+}
+
+func (q *Queries) FindDislike(ctx context.Context, arg FindDislikeParams) (Dislike, error) {
+	row := q.queryRow(ctx, q.findDislikeStmt, findDislike, arg.VideoID, arg.UserID)
+	var i Dislike
+	err := row.Scan(&i.VideoID, &i.UserID, &i.CreatedAt)
+	return i, err
+}
+
 const getDislikeCount = `-- name: GetDislikeCount :one
 SELECT COUNT(*) AS "count" FROM dislike WHERE video_id = $1
 `

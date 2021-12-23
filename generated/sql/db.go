@@ -28,6 +28,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findAggregateDislikeByIDStmt, err = db.PrepareContext(ctx, findAggregateDislikeByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAggregateDislikeByID: %w", err)
 	}
+	if q.findDislikeStmt, err = db.PrepareContext(ctx, findDislike); err != nil {
+		return nil, fmt.Errorf("error preparing query FindDislike: %w", err)
+	}
 	if q.findNVideosByIDHashStmt, err = db.PrepareContext(ctx, findNVideosByIDHash); err != nil {
 		return nil, fmt.Errorf("error preparing query FindNVideosByIDHash: %w", err)
 	}
@@ -68,6 +71,11 @@ func (q *Queries) Close() error {
 	if q.findAggregateDislikeByIDStmt != nil {
 		if cerr := q.findAggregateDislikeByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findAggregateDislikeByIDStmt: %w", cerr)
+		}
+	}
+	if q.findDislikeStmt != nil {
+		if cerr := q.findDislikeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findDislikeStmt: %w", cerr)
 		}
 	}
 	if q.findNVideosByIDHashStmt != nil {
@@ -156,6 +164,7 @@ type Queries struct {
 	tx                           *sql.Tx
 	deleteDislikeStmt            *sql.Stmt
 	findAggregateDislikeByIDStmt *sql.Stmt
+	findDislikeStmt              *sql.Stmt
 	findNVideosByIDHashStmt      *sql.Stmt
 	findUserByIDStmt             *sql.Stmt
 	findVideoDetailsByIDStmt     *sql.Stmt
@@ -173,6 +182,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                           tx,
 		deleteDislikeStmt:            q.deleteDislikeStmt,
 		findAggregateDislikeByIDStmt: q.findAggregateDislikeByIDStmt,
+		findDislikeStmt:              q.findDislikeStmt,
 		findNVideosByIDHashStmt:      q.findNVideosByIDHashStmt,
 		findUserByIDStmt:             q.findUserByIDStmt,
 		findVideoDetailsByIDStmt:     q.findVideoDetailsByIDStmt,

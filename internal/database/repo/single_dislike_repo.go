@@ -29,6 +29,13 @@ func (d *SingleDislikeRepo) Delete(ctx context.Context, videoID string, userID s
 	})
 }
 
-func (d SingleDislikeRepo) GetDislikeCount(ctx context.Context, videoID string) (int64, error) {
+func (d *SingleDislikeRepo) GetDislikeCount(ctx context.Context, videoID string) (int64, error) {
 	return d.querier.GetDislikeCount(ctx, videoID)
+}
+
+func (d *SingleDislikeRepo) FindByID(ctx context.Context, videoID string, userID string) (db.Dislike, error) {
+	return d.querier.FindDislike(ctx, db.FindDislikeParams{
+		VideoID: videoID,
+		UserID:  userID,
+	})
 }

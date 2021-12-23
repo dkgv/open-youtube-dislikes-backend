@@ -12,9 +12,10 @@ import (
 	"github.com/dkgv/dislikes/internal/types"
 )
 
-type SingleDislikeRepo interface {
+type DislikeRepo interface {
 	Insert(ctx context.Context, videoID string, userID string) error
 	Delete(ctx context.Context, videoID string, userID string) error
+	FindByID(ctx context.Context, videoID string, userID string) (db.Dislike, error)
 }
 
 type VideoRepo interface {
@@ -32,18 +33,18 @@ type MLService interface {
 }
 
 type Service struct {
-	singleDislikeRepo SingleDislikeRepo
-	videoRepo         VideoRepo
-	mlService         MLService
-	userRepo          UserRepo
+	dislikeRepo DislikeRepo
+	videoRepo   VideoRepo
+	mlService   MLService
+	userRepo    UserRepo
 }
 
-func New(mlService MLService, singleDislikeRepo SingleDislikeRepo, videoRepo VideoRepo, userRepo *repo.UserRepo) *Service {
+func New(mlService MLService, dislikeRepo DislikeRepo, videoRepo VideoRepo, userRepo *repo.UserRepo) *Service {
 	return &Service{
-		mlService:         mlService,
-		singleDislikeRepo: singleDislikeRepo,
-		videoRepo:         videoRepo,
-		userRepo:          userRepo,
+		mlService:   mlService,
+		dislikeRepo: dislikeRepo,
+		videoRepo:   videoRepo,
+		userRepo:    userRepo,
 	}
 }
 
@@ -94,7 +95,7 @@ func (s *Service) AddDislike(ctx context.Context, videoID string, userID string)
 		return err
 	}
 
-	return s.singleDislikeRepo.Insert(ctx, videoID, userID)
+	return s.dislikeRepo.Insert(ctx, videoID, userID)
 }
 
 func (s *Service) RemoveDislike(ctx context.Context, videoID string, userID string) error {
@@ -103,7 +104,16 @@ func (s *Service) RemoveDislike(ctx context.Context, videoID string, userID stri
 		return err
 	}
 
-	return s.singleDislikeRepo.Delete(ctx, videoID, userID)
+	return s.dislikeRepo.Delete(ctx, videoID, userID)
+}
+
+func (s *Service) HasDislikedVideo(ctx context.Context, videoID string, userID string) (bool, error) {
+	dislike, err := s.dislikeRepo.FindByID(ctx, videoID, userID)
+	if err != nil {
+		return false, err
+	}
+
+	return dislike != (db.Dislike{}), nil
 }
 
 func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {

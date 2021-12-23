@@ -6,3 +6,6 @@ SELECT COUNT(*) AS "count" FROM dislike WHERE video_id = $1;
 
 -- name: DeleteDislike :exec
 DELETE FROM dislike WHERE video_id = $1 AND user_id = $2;
+
+-- name: FindDislike :one
+SELECT * FROM dislike WHERE video_id = $1 AND user_id = $2;

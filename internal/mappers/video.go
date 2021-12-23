@@ -16,15 +16,3 @@ func DBVideoToVideo(video db.Video) types.Video {
 		Subscribers: uint32(video.Subscribers),
 	}
 }
-
-func VideoToDBVideo(video types.Video) db.Video {
-	return db.Video{
-		ID:          video.IDHash,
-		IDHash:      video.IDHash,
-		Likes:       int64(video.Likes),
-		Dislikes:    int64(video.Dislikes),
-		Views:       int64(video.Views),
-		Comments:    int64(video.Comments),
-		Subscribers: int64(video.Subscribers),
-	}
-}

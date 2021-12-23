@@ -9,6 +9,7 @@ import (
 type Querier interface {
 	DeleteDislike(ctx context.Context, arg DeleteDislikeParams) error
 	FindAggregateDislikeByID(ctx context.Context, id string) (int32, error)
+	FindDislike(ctx context.Context, arg FindDislikeParams) (Dislike, error)
 	FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]Video, error)
 	FindUserByID(ctx context.Context, id string) (User, error)
 	FindVideoDetailsByID(ctx context.Context, id string) (Video, error)
