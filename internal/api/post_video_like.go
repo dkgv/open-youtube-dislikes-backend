@@ -8,12 +8,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type PostVideoDislikeRequest struct {
+type PostVideoLikeRequest struct {
 	Action string `json:"action"`
 }
 
-func (a *API) PostVideoDislike(writer http.ResponseWriter, request *http.Request) {
-	var requestPayload PostVideoDislikeRequest
+func (a *API) PostVideoLike(writer http.ResponseWriter, request *http.Request) {
+	var requestPayload PostVideoLikeRequest
 	err := json.NewDecoder(request.Body).Decode(&requestPayload)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
@@ -34,9 +34,9 @@ func (a *API) PostVideoDislike(writer http.ResponseWriter, request *http.Request
 
 	go func() {
 		if requestPayload.Action == "add" {
-			_ = a.dataService.AddDislike(context.Background(), videoID, userID)
+			_ = a.dataService.AddLike(context.Background(), videoID, userID)
 		} else if requestPayload.Action == "remove" {
-			_ = a.dataService.RemoveDislike(context.Background(), videoID, userID)
+			_ = a.dataService.RemoveLike(context.Background(), videoID, userID)
 		}
 	}()
 	writer.WriteHeader(http.StatusOK)

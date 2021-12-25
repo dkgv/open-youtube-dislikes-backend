@@ -8,7 +8,7 @@ import (
 )
 
 const findNVideosByIDHash = `-- name: FindNVideosByIDHash :many
-SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM video WHERE id_hash LIKE $1 LIMIT $2
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE id_hash LIKE $1 LIMIT $2
 `
 
 type FindNVideosByIDHashParams struct {
@@ -16,15 +16,15 @@ type FindNVideosByIDHashParams struct {
 	Limit  int32  `json:"limit"`
 }
 
-func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]Video, error) {
+func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]OpenYoutubeDislikesVideo, error) {
 	rows, err := q.query(ctx, q.findNVideosByIDHashStmt, findNVideosByIDHash, arg.IDHash, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Video{}
+	items := []OpenYoutubeDislikesVideo{}
 	for rows.Next() {
-		var i Video
+		var i OpenYoutubeDislikesVideo
 		if err := rows.Scan(
 			&i.ID,
 			&i.IDHash,
@@ -51,12 +51,12 @@ func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHa
 }
 
 const findVideoDetailsByID = `-- name: FindVideoDetailsByID :one
-SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM video WHERE id = $1
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE id = $1
 `
 
-func (q *Queries) FindVideoDetailsByID(ctx context.Context, id string) (Video, error) {
+func (q *Queries) FindVideoDetailsByID(ctx context.Context, id string) (OpenYoutubeDislikesVideo, error) {
 	row := q.queryRow(ctx, q.findVideoDetailsByIDStmt, findVideoDetailsByID, id)
-	var i Video
+	var i OpenYoutubeDislikesVideo
 	err := row.Scan(
 		&i.ID,
 		&i.IDHash,
@@ -73,7 +73,7 @@ func (q *Queries) FindVideoDetailsByID(ctx context.Context, id string) (Video, e
 }
 
 const upsertVideoDetails = `-- name: UpsertVideoDetails :exec
-INSERT INTO video
+INSERT INTO open_youtube_dislikes.video
     (id, id_hash, likes, dislikes, views, comments, subscribers, published_at)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (id) DO

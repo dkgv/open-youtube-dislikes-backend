@@ -15,7 +15,7 @@ func NewUserRepo(conn *sql.DB) *UserRepo {
 	return &UserRepo{querier: db.New(conn)}
 }
 
-func (v *UserRepo) FindByID(ctx context.Context, id string) (db.User, error) {
+func (v *UserRepo) FindByID(ctx context.Context, id string) (db.OpenYoutubeDislikesUser, error) {
 	return v.querier.FindUserByID(ctx, id)
 }
 

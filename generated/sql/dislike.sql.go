@@ -8,7 +8,7 @@ import (
 )
 
 const deleteDislike = `-- name: DeleteDislike :exec
-DELETE FROM dislike WHERE video_id = $1 AND user_id = $2
+DELETE FROM open_youtube_dislikes.dislike WHERE video_id = $1 AND user_id = $2
 `
 
 type DeleteDislikeParams struct {
@@ -22,7 +22,7 @@ func (q *Queries) DeleteDislike(ctx context.Context, arg DeleteDislikeParams) er
 }
 
 const findDislike = `-- name: FindDislike :one
-SELECT video_id, user_id, created_at FROM dislike WHERE video_id = $1 AND user_id = $2
+SELECT video_id, user_id, created_at FROM open_youtube_dislikes.dislike WHERE video_id = $1 AND user_id = $2
 `
 
 type FindDislikeParams struct {
@@ -30,15 +30,15 @@ type FindDislikeParams struct {
 	UserID  string `json:"user_id"`
 }
 
-func (q *Queries) FindDislike(ctx context.Context, arg FindDislikeParams) (Dislike, error) {
+func (q *Queries) FindDislike(ctx context.Context, arg FindDislikeParams) (OpenYoutubeDislikesDislike, error) {
 	row := q.queryRow(ctx, q.findDislikeStmt, findDislike, arg.VideoID, arg.UserID)
-	var i Dislike
+	var i OpenYoutubeDislikesDislike
 	err := row.Scan(&i.VideoID, &i.UserID, &i.CreatedAt)
 	return i, err
 }
 
 const getDislikeCount = `-- name: GetDislikeCount :one
-SELECT COUNT(*) AS "count" FROM dislike WHERE video_id = $1
+SELECT COUNT(*) AS "count" FROM open_youtube_dislikes.dislike WHERE video_id = $1
 `
 
 func (q *Queries) GetDislikeCount(ctx context.Context, videoID string) (int64, error) {
@@ -49,7 +49,7 @@ func (q *Queries) GetDislikeCount(ctx context.Context, videoID string) (int64, e
 }
 
 const insertDislike = `-- name: InsertDislike :exec
-INSERT INTO dislike (video_id, user_id) VALUES ($1, $2)
+INSERT INTO open_youtube_dislikes.dislike (video_id, user_id) VALUES ($1, $2)
 `
 
 type InsertDislikeParams struct {

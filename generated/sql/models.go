@@ -6,24 +6,30 @@ import (
 	"time"
 )
 
-type AggregateDislike struct {
+type OpenYoutubeDislikesAggregateDislike struct {
 	ID        string    `json:"id"`
 	Count     int32     `json:"count"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type Dislike struct {
+type OpenYoutubeDislikesDislike struct {
 	VideoID   string    `json:"video_id"`
 	UserID    string    `json:"user_id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type User struct {
+type OpenYoutubeDislikesLike struct {
+	VideoID   string    `json:"video_id"`
+	UserID    string    `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type OpenYoutubeDislikesUser struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type Video struct {
+type OpenYoutubeDislikesVideo struct {
 	ID          string    `json:"id"`
 	IDHash      string    `json:"id_hash"`
 	Likes       int64     `json:"likes"`

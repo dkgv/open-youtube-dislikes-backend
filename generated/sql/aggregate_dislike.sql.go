@@ -9,7 +9,7 @@ import (
 )
 
 const findAggregateDislikeByID = `-- name: FindAggregateDislikeByID :one
-SELECT count FROM aggregate_dislike WHERE id = $1
+SELECT count FROM open_youtube_dislikes.aggregate_dislike WHERE id = $1
 `
 
 func (q *Queries) FindAggregateDislikeByID(ctx context.Context, id string) (int32, error) {
@@ -20,7 +20,7 @@ func (q *Queries) FindAggregateDislikeByID(ctx context.Context, id string) (int3
 }
 
 const insertAggregateDislike = `-- name: InsertAggregateDislike :exec
-INSERT INTO aggregate_dislike (id, count) VALUES ($1, $2)
+INSERT INTO open_youtube_dislikes.aggregate_dislike (id, count) VALUES ($1, $2)
 `
 
 type InsertAggregateDislikeParams struct {
@@ -34,7 +34,7 @@ func (q *Queries) InsertAggregateDislike(ctx context.Context, arg InsertAggregat
 }
 
 const updateAggregateDislike = `-- name: UpdateAggregateDislike :exec
-UPDATE aggregate_dislike SET count = $2, updated_at = $3 WHERE id = $1
+UPDATE open_youtube_dislikes.aggregate_dislike SET count = $2, updated_at = $3 WHERE id = $1
 `
 
 type UpdateAggregateDislikeParams struct {

@@ -5,7 +5,7 @@ import (
 	"github.com/dkgv/dislikes/internal/types"
 )
 
-func DBVideoToVideo(video db.Video) types.Video {
+func DBVideoToVideo(video db.OpenYoutubeDislikesVideo) types.Video {
 	return types.Video{
 		IDHash:      video.IDHash,
 		Views:       uint32(video.Views),

@@ -15,6 +15,7 @@ type PostVideoRequest struct {
 
 type PostVideoResponse struct {
 	HasDisliked bool `json:"has_disliked"`
+	HasLiked    bool `json:"has_liked"`
 }
 
 func (a *API) PostVideoV1(writer http.ResponseWriter, request *http.Request) {
@@ -41,13 +42,22 @@ func (a *API) PostVideoV1(writer http.ResponseWriter, request *http.Request) {
 		_ = a.dataService.AddVideo(context.Background(), videoID, videoRequest.Video)
 	}()
 
+	hasLiked, err := a.dataService.HasLikedVideo(context.Background(), userID, videoID)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	hasDisliked, err := a.dataService.HasDislikedVideo(context.Background(), userID, videoID)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	responsePayload, err := json.Marshal(PostVideoResponse{HasDisliked: hasDisliked})
+	responsePayload, err := json.Marshal(PostVideoResponse{
+		HasLiked:    hasLiked,
+		HasDisliked: hasDisliked,
+	})
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return

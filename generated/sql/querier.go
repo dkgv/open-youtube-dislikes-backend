@@ -8,14 +8,18 @@ import (
 
 type Querier interface {
 	DeleteDislike(ctx context.Context, arg DeleteDislikeParams) error
+	DeleteLike(ctx context.Context, arg DeleteLikeParams) error
 	FindAggregateDislikeByID(ctx context.Context, id string) (int32, error)
-	FindDislike(ctx context.Context, arg FindDislikeParams) (Dislike, error)
-	FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]Video, error)
-	FindUserByID(ctx context.Context, id string) (User, error)
-	FindVideoDetailsByID(ctx context.Context, id string) (Video, error)
+	FindDislike(ctx context.Context, arg FindDislikeParams) (OpenYoutubeDislikesDislike, error)
+	FindLike(ctx context.Context, arg FindLikeParams) (OpenYoutubeDislikesLike, error)
+	FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]OpenYoutubeDislikesVideo, error)
+	FindUserByID(ctx context.Context, id string) (OpenYoutubeDislikesUser, error)
+	FindVideoDetailsByID(ctx context.Context, id string) (OpenYoutubeDislikesVideo, error)
 	GetDislikeCount(ctx context.Context, videoID string) (int64, error)
+	GetLikeCount(ctx context.Context, videoID string) (int64, error)
 	InsertAggregateDislike(ctx context.Context, arg InsertAggregateDislikeParams) error
 	InsertDislike(ctx context.Context, arg InsertDislikeParams) error
+	InsertLike(ctx context.Context, arg InsertLikeParams) error
 	InsertUser(ctx context.Context, id string) error
 	UpdateAggregateDislike(ctx context.Context, arg UpdateAggregateDislikeParams) error
 	UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetailsParams) error

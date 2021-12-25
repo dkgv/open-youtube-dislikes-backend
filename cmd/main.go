@@ -17,7 +17,8 @@ func main() {
 	}
 
 	// Define repositories
-	singleDislikeRepo := repo.NewSingleDislikeRepo(conn)
+	dislikeRepo := repo.NewDislikeRepo(conn)
+	likeRepo := repo.NewLikeRepo(conn)
 	videoRepo := repo.NewVideoRepo(conn)
 	userRepo := repo.NewUserRepo(conn)
 
@@ -27,7 +28,7 @@ func main() {
 		log.Print(err)
 	}
 
-	dataService := data.New(mlService, singleDislikeRepo, videoRepo, userRepo)
+	dataService := data.New(mlService, dislikeRepo, likeRepo, videoRepo, userRepo)
 
 	instance := api.New(dataService)
 	instance.Run()

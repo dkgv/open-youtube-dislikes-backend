@@ -25,11 +25,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteDislikeStmt, err = db.PrepareContext(ctx, deleteDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteDislike: %w", err)
 	}
+	if q.deleteLikeStmt, err = db.PrepareContext(ctx, deleteLike); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteLike: %w", err)
+	}
 	if q.findAggregateDislikeByIDStmt, err = db.PrepareContext(ctx, findAggregateDislikeByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAggregateDislikeByID: %w", err)
 	}
 	if q.findDislikeStmt, err = db.PrepareContext(ctx, findDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query FindDislike: %w", err)
+	}
+	if q.findLikeStmt, err = db.PrepareContext(ctx, findLike); err != nil {
+		return nil, fmt.Errorf("error preparing query FindLike: %w", err)
 	}
 	if q.findNVideosByIDHashStmt, err = db.PrepareContext(ctx, findNVideosByIDHash); err != nil {
 		return nil, fmt.Errorf("error preparing query FindNVideosByIDHash: %w", err)
@@ -43,11 +49,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getDislikeCountStmt, err = db.PrepareContext(ctx, getDislikeCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDislikeCount: %w", err)
 	}
+	if q.getLikeCountStmt, err = db.PrepareContext(ctx, getLikeCount); err != nil {
+		return nil, fmt.Errorf("error preparing query GetLikeCount: %w", err)
+	}
 	if q.insertAggregateDislikeStmt, err = db.PrepareContext(ctx, insertAggregateDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertAggregateDislike: %w", err)
 	}
 	if q.insertDislikeStmt, err = db.PrepareContext(ctx, insertDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertDislike: %w", err)
+	}
+	if q.insertLikeStmt, err = db.PrepareContext(ctx, insertLike); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertLike: %w", err)
 	}
 	if q.insertUserStmt, err = db.PrepareContext(ctx, insertUser); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertUser: %w", err)
@@ -68,6 +80,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteDislikeStmt: %w", cerr)
 		}
 	}
+	if q.deleteLikeStmt != nil {
+		if cerr := q.deleteLikeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteLikeStmt: %w", cerr)
+		}
+	}
 	if q.findAggregateDislikeByIDStmt != nil {
 		if cerr := q.findAggregateDislikeByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findAggregateDislikeByIDStmt: %w", cerr)
@@ -76,6 +93,11 @@ func (q *Queries) Close() error {
 	if q.findDislikeStmt != nil {
 		if cerr := q.findDislikeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findDislikeStmt: %w", cerr)
+		}
+	}
+	if q.findLikeStmt != nil {
+		if cerr := q.findLikeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findLikeStmt: %w", cerr)
 		}
 	}
 	if q.findNVideosByIDHashStmt != nil {
@@ -98,6 +120,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getDislikeCountStmt: %w", cerr)
 		}
 	}
+	if q.getLikeCountStmt != nil {
+		if cerr := q.getLikeCountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getLikeCountStmt: %w", cerr)
+		}
+	}
 	if q.insertAggregateDislikeStmt != nil {
 		if cerr := q.insertAggregateDislikeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertAggregateDislikeStmt: %w", cerr)
@@ -106,6 +133,11 @@ func (q *Queries) Close() error {
 	if q.insertDislikeStmt != nil {
 		if cerr := q.insertDislikeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertDislikeStmt: %w", cerr)
+		}
+	}
+	if q.insertLikeStmt != nil {
+		if cerr := q.insertLikeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertLikeStmt: %w", cerr)
 		}
 	}
 	if q.insertUserStmt != nil {
@@ -163,14 +195,18 @@ type Queries struct {
 	db                           DBTX
 	tx                           *sql.Tx
 	deleteDislikeStmt            *sql.Stmt
+	deleteLikeStmt               *sql.Stmt
 	findAggregateDislikeByIDStmt *sql.Stmt
 	findDislikeStmt              *sql.Stmt
+	findLikeStmt                 *sql.Stmt
 	findNVideosByIDHashStmt      *sql.Stmt
 	findUserByIDStmt             *sql.Stmt
 	findVideoDetailsByIDStmt     *sql.Stmt
 	getDislikeCountStmt          *sql.Stmt
+	getLikeCountStmt             *sql.Stmt
 	insertAggregateDislikeStmt   *sql.Stmt
 	insertDislikeStmt            *sql.Stmt
+	insertLikeStmt               *sql.Stmt
 	insertUserStmt               *sql.Stmt
 	updateAggregateDislikeStmt   *sql.Stmt
 	upsertVideoDetailsStmt       *sql.Stmt
@@ -181,14 +217,18 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                           tx,
 		tx:                           tx,
 		deleteDislikeStmt:            q.deleteDislikeStmt,
+		deleteLikeStmt:               q.deleteLikeStmt,
 		findAggregateDislikeByIDStmt: q.findAggregateDislikeByIDStmt,
 		findDislikeStmt:              q.findDislikeStmt,
+		findLikeStmt:                 q.findLikeStmt,
 		findNVideosByIDHashStmt:      q.findNVideosByIDHashStmt,
 		findUserByIDStmt:             q.findUserByIDStmt,
 		findVideoDetailsByIDStmt:     q.findVideoDetailsByIDStmt,
 		getDislikeCountStmt:          q.getDislikeCountStmt,
+		getLikeCountStmt:             q.getLikeCountStmt,
 		insertAggregateDislikeStmt:   q.insertAggregateDislikeStmt,
 		insertDislikeStmt:            q.insertDislikeStmt,
+		insertLikeStmt:               q.insertLikeStmt,
 		insertUserStmt:               q.insertUserStmt,
 		updateAggregateDislikeStmt:   q.updateAggregateDislikeStmt,
 		upsertVideoDetailsStmt:       q.upsertVideoDetailsStmt,
