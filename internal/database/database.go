@@ -15,7 +15,7 @@ func NewConnection() (*sql.DB, error) {
 		return nil, errors.New("environment variable DATABASE_URL is not set")
 	}
 
-	databaseUrl += "?options=-csearch_path%3Ddislikes"
+	databaseUrl += "?options=-csearch_path%3Dopen_youtube_dislikes"
 
 	conn, err := sql.Open("postgres", databaseUrl)
 	if err != nil {

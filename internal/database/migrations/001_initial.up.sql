@@ -1,4 +1,6 @@
-CREATE TABLE IF NOT EXISTS video (
+CREATE SCHEMA IF NOT EXISTS open_youtube_dislikes;
+
+CREATE TABLE IF NOT EXISTS open_youtube_dislikes.video (
      id TEXT NOT NULL PRIMARY KEY,
      id_hash TEXT NOT NULL,
      likes BIGINT NOT NULL,
@@ -14,14 +16,14 @@ CREATE TABLE IF NOT EXISTS video (
 CREATE INDEX IF NOT EXISTS video_id_index ON video (id);
 CREATE INDEX IF NOT EXISTS video_id_hash_index ON video (id_hash);
 
-CREATE TABLE IF NOT EXISTS "user" (
+CREATE TABLE IF NOT EXISTS open_youtube_dislikes."user" (
     id TEXT NOT NULL PRIMARY KEY,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS user_id_index ON "user" (id);
 
-CREATE TABLE IF NOT EXISTS dislike (
+CREATE TABLE IF NOT EXISTS open_youtube_dislikes.dislike (
     video_id TEXT NOT NULL REFERENCES video (id),
     user_id TEXT NOT NULL REFERENCES "user" (id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -30,7 +32,7 @@ CREATE TABLE IF NOT EXISTS dislike (
 CREATE INDEX IF NOT EXISTS dislike_video_id_index ON dislike (video_id);
 CREATE INDEX IF NOT EXISTS dislike_user_id_index ON dislike (user_id);
 
-CREATE TABLE IF NOT EXISTS aggregate_dislike (
+CREATE TABLE IF NOT EXISTS open_youtube_dislikes.aggregate_dislike (
     id TEXT NOT NULL REFERENCES video (id),
     count INTEGER NOT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
