@@ -8,7 +8,7 @@ import (
 )
 
 const deleteLike = `-- name: DeleteLike :exec
-DELETE FROM open_youtube_dislikes.like WHERE video_id = $1 AND user_id = $2
+DELETE FROM open_youtube_dislikes."like" WHERE video_id = $1 AND user_id = $2
 `
 
 type DeleteLikeParams struct {
@@ -22,7 +22,7 @@ func (q *Queries) DeleteLike(ctx context.Context, arg DeleteLikeParams) error {
 }
 
 const findLike = `-- name: FindLike :one
-SELECT video_id, user_id, created_at FROM open_youtube_dislikes.like WHERE video_id = $1 AND user_id = $2
+SELECT video_id, user_id, created_at FROM open_youtube_dislikes."like" WHERE video_id = $1 AND user_id = $2
 `
 
 type FindLikeParams struct {
@@ -38,7 +38,7 @@ func (q *Queries) FindLike(ctx context.Context, arg FindLikeParams) (OpenYoutube
 }
 
 const getLikeCount = `-- name: GetLikeCount :one
-SELECT COUNT(*) AS "count" FROM open_youtube_dislikes.like WHERE video_id = $1
+SELECT COUNT(*) AS "count" FROM open_youtube_dislikes."like" WHERE video_id = $1
 `
 
 func (q *Queries) GetLikeCount(ctx context.Context, videoID string) (int64, error) {
@@ -49,7 +49,7 @@ func (q *Queries) GetLikeCount(ctx context.Context, videoID string) (int64, erro
 }
 
 const insertLike = `-- name: InsertLike :exec
-INSERT INTO open_youtube_dislikes.like (video_id, user_id) VALUES ($1, $2)
+INSERT INTO open_youtube_dislikes."like" (video_id, user_id) VALUES ($1, $2)
 `
 
 type InsertLikeParams struct {
