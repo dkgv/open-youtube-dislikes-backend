@@ -12,11 +12,11 @@ type Video struct {
 	Subscribers int64  `json:"subscribers,omitempty"`
 }
 
-func (v Video) LikesPerView() float64 {
-	if v.Views == 0 {
+func (v Video) ViewsPerLike() float64 {
+	if v.Likes == 0 {
 		return 0
 	}
-	return float64(v.Likes) / float64(v.Views) / 100
+	return float64(v.Views) / float64(v.Likes) / 100
 }
 
 func (v Video) DaysSincePublish() int32 {
@@ -25,9 +25,16 @@ func (v Video) DaysSincePublish() int32 {
 	return int32(now.Sub(timestamp).Hours() / 24)
 }
 
-func (v Video) CommentsPerView() float64 {
-	if v.Views == 0 {
+func (v Video) ViewsPerComment() float64 {
+	if v.Comments == nil {
 		return 0
 	}
-	return float64(*v.Comments) / float64(v.Views) / 100
+	return float64(v.Views) / float64(*v.Comments) / 100
+}
+
+func (v Video) LikesPerComment() float64 {
+	if v.Comments == nil {
+		return 0
+	}
+	return float64(v.Likes) / float64(*v.Comments) / 100
 }
