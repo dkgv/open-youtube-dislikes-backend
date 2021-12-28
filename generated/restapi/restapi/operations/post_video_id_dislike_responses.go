@@ -34,27 +34,3 @@ func (o *PostVideoIDDislikeOK) WriteResponse(rw http.ResponseWriter, producer ru
 
 	rw.WriteHeader(200)
 }
-
-// PostVideoIDDislikeBadRequestCode is the HTTP code returned for type PostVideoIDDislikeBadRequest
-const PostVideoIDDislikeBadRequestCode int = 400
-
-/*PostVideoIDDislikeBadRequest Bad Request
-
-swagger:response postVideoIdDislikeBadRequest
-*/
-type PostVideoIDDislikeBadRequest struct {
-}
-
-// NewPostVideoIDDislikeBadRequest creates PostVideoIDDislikeBadRequest with default headers values
-func NewPostVideoIDDislikeBadRequest() *PostVideoIDDislikeBadRequest {
-
-	return &PostVideoIDDislikeBadRequest{}
-}
-
-// WriteResponse to the client
-func (o *PostVideoIDDislikeBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
-
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
-	rw.WriteHeader(400)
-}

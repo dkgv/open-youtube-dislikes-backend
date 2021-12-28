@@ -65,9 +65,6 @@ func init() {
         "responses": {
           "200": {
             "description": "Success"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       },
@@ -93,9 +90,6 @@ func init() {
         "responses": {
           "200": {
             "description": "Success"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       },
@@ -246,9 +240,6 @@ func init() {
         "responses": {
           "200": {
             "description": "Success"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       },
@@ -282,9 +273,6 @@ func init() {
         "responses": {
           "200": {
             "description": "Success"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       },

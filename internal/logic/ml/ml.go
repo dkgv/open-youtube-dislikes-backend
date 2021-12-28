@@ -31,7 +31,7 @@ func New() (*Service, error) {
 	}, nil
 }
 
-func (s *Service) Predict(ctx context.Context, apiVersion int, video types.Video) (uint32, error) {
+func (s *Service) Predict(ctx context.Context, apiVersion int, video types.Video) (int64, error) {
 	switch apiVersion {
 	case 1:
 		return s.predictV1(video)
@@ -41,7 +41,7 @@ func (s *Service) Predict(ctx context.Context, apiVersion int, video types.Video
 	}
 }
 
-func (s *Service) predictV1(video types.Video) (uint32, error) {
+func (s *Service) predictV1(video types.Video) (int64, error) {
 	input := mat.SparseMatrix{
 		Vectors: []mat.SparseVector{
 			{
@@ -55,7 +55,7 @@ func (s *Service) predictV1(video types.Video) (uint32, error) {
 	return tryPredict(s.modelV1, input)
 }
 
-func tryPredict(model *inference.Ensemble, input mat.SparseMatrix) (uint32, error) {
+func tryPredict(model *inference.Ensemble, input mat.SparseMatrix) (int64, error) {
 	output, err := model.PredictRegression(input, 0)
 	if err != nil || len(output.Vectors) == 0 {
 		return 0, err
@@ -68,5 +68,5 @@ func tryPredict(model *inference.Ensemble, input mat.SparseMatrix) (uint32, erro
 		return 0, ErrNoPrediction
 	}
 
-	return uint32(floats[0]), nil
+	return int64(floats[0]), nil
 }

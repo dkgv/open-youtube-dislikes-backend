@@ -3,7 +3,6 @@ package repo
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	db "github.com/dkgv/dislikes/generated/sql"
 )
@@ -27,16 +26,15 @@ func (v *VideoRepo) FindNByHash(ctx context.Context, idHash string, maxCount int
 	})
 }
 
-func (v *VideoRepo) Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views uint32, comments *uint32, subscribers uint32, publishedAt int64) error {
-	log.Println("Upserting video", id)
+func (v *VideoRepo) Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments *int64, subscribers int64, publishedAt int64) error {
 	return v.querier.UpsertVideoDetails(ctx, db.UpsertVideoDetailsParams{
 		ID:          id,
 		IDHash:      idHash,
-		Likes:       int64(likes),
-		Dislikes:    int64(dislikes),
-		Views:       int64(views),
-		Comments:    sql.NullInt64{Int64: int64(*comments), Valid: comments != nil},
-		Subscribers: int64(subscribers),
+		Likes:       likes,
+		Dislikes:    dislikes,
+		Views:       views,
+		Comments:    sql.NullInt64{Int64: *comments, Valid: comments != nil},
+		Subscribers: subscribers,
 		PublishedAt: publishedAt,
 	})
 }

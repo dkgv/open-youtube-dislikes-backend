@@ -21,6 +21,7 @@ func Initialize(dataService *data.Service, userService *user.Service, swagger *o
 			return operations.NewPostVideoIDBadRequest()
 		}
 
+
 		err := dataService.AddVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
 		if err != nil {
 			log.Println("Error while adding video: ", err)
@@ -48,7 +49,7 @@ func Initialize(dataService *data.Service, userService *user.Service, swagger *o
 		return operations.NewPostVideoIDOK().WithPayload(&models.VideoResponse{
 			HasDisliked:       hasDisliked,
 			HasLiked:          hasLiked,
-			Dislikes:          int64(dislikes),
+			Dislikes:          dislikes,
 			FormattedDislikes: formattedDislikes,
 		})
 	})

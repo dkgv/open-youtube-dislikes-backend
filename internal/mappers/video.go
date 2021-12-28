@@ -7,27 +7,27 @@ import (
 )
 
 func DBVideoToVideo(video db.OpenYoutubeDislikesVideo) types.Video {
-	comments := uint32(video.Comments.Int64)
+	comments := video.Comments.Int64
 	return types.Video{
 		IDHash:      video.IDHash,
-		Views:       uint32(video.Views),
-		Likes:       uint32(video.Likes),
-		Dislikes:    uint32(video.Dislikes),
+		Views:       video.Views,
+		Likes:       video.Likes,
+		Dislikes:    video.Dislikes,
 		Comments:    &comments,
 		PublishedAt: video.PublishedAt,
-		Subscribers: uint32(video.Subscribers),
+		Subscribers: video.Subscribers,
 	}
 }
 
 func SwaggerVideoToVideo(video *models.Video) types.Video {
-	comments := uint32(video.Comments)
+	comments := video.Comments
 	return types.Video{
 		IDHash:      video.IDHash,
-		Views:       uint32(video.Views),
-		Likes:       uint32(video.Likes),
-		Dislikes:    uint32(video.Dislikes),
+		Views:       video.Views,
+		Likes:       video.Likes,
+		Dislikes:    video.Dislikes,
 		Comments:    &comments,
 		PublishedAt: video.PublishedAt,
-		Subscribers: uint32(video.Subscribers),
+		Subscribers: video.Subscribers,
 	}
 }

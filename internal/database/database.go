@@ -22,7 +22,6 @@ func NewConnection() (*sql.DB, error) {
 	}
 	databaseUrl += prefix + "options=-csearch_path%3Dopen_youtube_dislikes"
 
-	log.Println("Connecting to database:", databaseUrl)
 	conn, err := sql.Open("postgres", databaseUrl)
 	if err != nil {
 		return nil, err

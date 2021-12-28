@@ -3,13 +3,13 @@ package types
 import "time"
 
 type Video struct {
-	IDHash      string  `json:"id_hash,omitempty"`
-	Views       uint32  `json:"views,omitempty"`
-	Likes       uint32  `json:"likes,omitempty"`
-	Dislikes    uint32  `json:"dislikes,omitempty"`
-	Comments    *uint32 `json:"comments,omitempty"`
-	PublishedAt int64   `json:"published_at,omitempty"`
-	Subscribers uint32  `json:"subscribers,omitempty"`
+	IDHash      string `json:"idHash,omitempty"`
+	Views       int64  `json:"views,omitempty"`
+	Likes       int64  `json:"likes,omitempty"`
+	Dislikes    int64  `json:"dislikes,omitempty"`
+	Comments    *int64 `json:"comments,omitempty"`
+	PublishedAt int64  `json:"publishedAt,omitempty"`
+	Subscribers int64  `json:"subscribers,omitempty"`
 }
 
 func (v Video) LikesPerView() float64 {

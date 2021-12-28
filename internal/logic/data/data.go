@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"math"
 
 	db "github.com/dkgv/dislikes/generated/sql"
@@ -14,12 +13,12 @@ import (
 )
 
 type VideoRepo interface {
-	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views uint32, comments *uint32, subscribers uint32, publishedAt int64) error
+	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments *int64, subscribers int64, publishedAt int64) error
 	FindNByHash(ctx context.Context, idHash string, maxCount int32) ([]db.OpenYoutubeDislikesVideo, error)
 }
 
 type MLService interface {
-	Predict(ctx context.Context, apiVersion int, video types.Video) (uint32, error)
+	Predict(ctx context.Context, apiVersion int, video types.Video) (int64, error)
 }
 
 type Service struct {
@@ -34,19 +33,17 @@ func New(mlService MLService, videoRepo VideoRepo) *Service {
 	}
 }
 
-func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.Video) (uint32, string, error) {
+func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.Video) (int64, string, error) {
 	prediction, err := s.mlService.Predict(ctx, apiVersion, video)
 	if err != nil {
 		return 0, "", err
 	}
 
 	predictionString := fmt.Sprintf("%d", prediction)
-	if prediction > 1000000 {
-		prediction /= 1000000
-		predictionString = fmt.Sprintf("%dM", prediction)
+	if prediction > 1_000_000 {
+		predictionString = fmt.Sprintf("%dM", prediction/1_000_000)
 	} else if prediction > 1000 {
-		prediction /= 1000
-		predictionString = fmt.Sprintf("%dK", prediction)
+		predictionString = fmt.Sprintf("%dK", prediction/1000)
 	}
 
 	return prediction, predictionString, nil
@@ -76,7 +73,6 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 }
 
 func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {
-	log.Println("Adding video", videoID)
 	videoIDHash := hashString(videoID)
 	return s.videoRepo.Upsert(
 		ctx,

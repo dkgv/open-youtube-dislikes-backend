@@ -10,14 +10,14 @@ INSERT INTO open_youtube_dislikes.video
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (id) DO
         UPDATE SET
-            likes = excluded.likes,
-            dislikes = excluded.dislikes,
-            views = excluded.views,
-            comments = excluded.comments,
-            subscribers = excluded.subscribers
+            likes = GREATEST(video.likes, excluded.likes),
+            dislikes = GREATEST(video.dislikes, excluded.dislikes),
+            views = GREATEST(video.views, excluded.views),
+            comments = GREATEST(video.comments, excluded.comments),
+            subscribers = GREATEST(video.subscribers, excluded.subscribers)
         WHERE video.likes <= excluded.likes
-            AND video.dislikes <= excluded.dislikes
-            AND video.views < excluded.views
-            AND video.comments <= excluded.comments
-            AND video.subscribers <= excluded.subscribers
-            AND video.published_at = excluded.published_at;
+            OR video.dislikes <= excluded.dislikes
+            OR video.views < excluded.views
+            OR video.comments <= excluded.comments
+            OR video.subscribers <= excluded.subscribers
+            OR video.published_at = excluded.published_at;
