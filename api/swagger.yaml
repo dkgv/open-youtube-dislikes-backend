@@ -1,0 +1,116 @@
+swagger: "2.0"
+
+info:
+  title: open-youtube-dislikes-backend
+  version: 0.0.1
+
+produces:
+  - application/json
+
+consumes:
+  - application/json
+
+paths:
+  /video/{id}:
+    parameters:
+      - $ref: '#/parameters/VideoID'
+      - $ref: '#/parameters/XUserID'
+      - name: video
+        in: body
+        schema:
+          $ref: '#/definitions/Video'
+    post:
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/VideoResponse'
+        400:
+          description: Bad Request
+
+  /video/{id}/like:
+    parameters:
+      - $ref: '#/parameters/VideoID'
+      - $ref: '#/parameters/XUserID'
+      - name: action
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/Action'
+    post:
+      responses:
+        200:
+          description: Success
+        400:
+          description: Bad Request
+
+  /video/{id}/dislike:
+    parameters:
+      - $ref: '#/parameters/VideoID'
+      - $ref: '#/parameters/XUserID'
+      - name: action
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/Action'
+    post:
+      responses:
+        200:
+          description: Success
+        400:
+          description: Bad Request
+
+parameters:
+  XUserID:
+    name: X-User-ID
+    in: header
+    description: User ID
+    required: true
+    type: string
+
+  VideoID:
+    name: id
+    in: path
+    description: Video ID
+    required: true
+    type: string
+
+definitions:
+  Action:
+    type: string
+    enum:
+      - add
+      - remove
+
+  VideoResponse:
+    type: object
+    properties:
+      dislikes:
+        type: integer
+      formattedDislikes:
+        type: string
+        description: Formatted number of dislikes
+      hasLiked:
+        type: boolean
+      hasDisliked:
+        type: boolean
+
+  Video:
+    type: object
+    properties:
+      id:
+        type: string
+      idHash:
+        type: string
+      views:
+        type: integer
+      likes:
+        type: integer
+      dislikes:
+        type: integer
+      comments:
+        type: integer
+      publishedAt:
+        type: integer
+      subscribers:
+        type: integer

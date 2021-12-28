@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS open_youtube_dislikes.video (
      likes BIGINT NOT NULL,
      dislikes BIGINT NOT NULL,
      views BIGINT NOT NULL,
-     comments BIGINT NOT NULL,
+     comments BIGINT,
      subscribers BIGINT NOT NULL,
      published_at BIGINT NOT NULL,
      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

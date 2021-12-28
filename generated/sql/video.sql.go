@@ -5,6 +5,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 const findNVideosByIDHash = `-- name: FindNVideosByIDHash :many
@@ -77,19 +78,29 @@ INSERT INTO open_youtube_dislikes.video
     (id, id_hash, likes, dislikes, views, comments, subscribers, published_at)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (id) DO
-        UPDATE SET likes = $3, dislikes = $4, views = $5, comments = $6, subscribers = $7
-        WHERE likes <= $3 AND dislikes <= $4 AND views < $5 AND comments <= $6 AND subscribers <= $7 AND published_at = $8
+        UPDATE SET
+            likes = excluded.likes,
+            dislikes = excluded.dislikes,
+            views = excluded.views,
+            comments = excluded.comments,
+            subscribers = excluded.subscribers
+        WHERE video.likes <= excluded.likes
+            AND video.dislikes <= excluded.dislikes
+            AND video.views < excluded.views
+            AND video.comments <= excluded.comments
+            AND video.subscribers <= excluded.subscribers
+            AND video.published_at = excluded.published_at
 `
 
 type UpsertVideoDetailsParams struct {
-	ID          string `json:"id"`
-	IDHash      string `json:"id_hash"`
-	Likes       int64  `json:"likes"`
-	Dislikes    int64  `json:"dislikes"`
-	Views       int64  `json:"views"`
-	Comments    int64  `json:"comments"`
-	Subscribers int64  `json:"subscribers"`
-	PublishedAt int64  `json:"published_at"`
+	ID          string        `json:"id"`
+	IDHash      string        `json:"id_hash"`
+	Likes       int64         `json:"likes"`
+	Dislikes    int64         `json:"dislikes"`
+	Views       int64         `json:"views"`
+	Comments    sql.NullInt64 `json:"comments"`
+	Subscribers int64         `json:"subscribers"`
+	PublishedAt int64         `json:"published_at"`
 }
 
 func (q *Queries) UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetailsParams) error {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -15,8 +16,13 @@ func NewConnection() (*sql.DB, error) {
 		return nil, errors.New("environment variable DATABASE_URL is not set")
 	}
 
-	databaseUrl += "?options=-csearch_path%3Dopen_youtube_dislikes"
+	prefix := "?"
+	if strings.Contains(databaseUrl, "?") {
+		prefix = "&"
+	}
+	databaseUrl += prefix + "options=-csearch_path%3Dopen_youtube_dislikes"
 
+	log.Println("Connecting to database:", databaseUrl)
 	conn, err := sql.Open("postgres", databaseUrl)
 	if err != nil {
 		return nil, err

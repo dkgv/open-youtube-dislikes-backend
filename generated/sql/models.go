@@ -3,6 +3,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -30,14 +31,14 @@ type OpenYoutubeDislikesUser struct {
 }
 
 type OpenYoutubeDislikesVideo struct {
-	ID          string    `json:"id"`
-	IDHash      string    `json:"id_hash"`
-	Likes       int64     `json:"likes"`
-	Dislikes    int64     `json:"dislikes"`
-	Views       int64     `json:"views"`
-	Comments    int64     `json:"comments"`
-	Subscribers int64     `json:"subscribers"`
-	PublishedAt int64     `json:"published_at"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          string        `json:"id"`
+	IDHash      string        `json:"id_hash"`
+	Likes       int64         `json:"likes"`
+	Dislikes    int64         `json:"dislikes"`
+	Views       int64         `json:"views"`
+	Comments    sql.NullInt64 `json:"comments"`
+	Subscribers int64         `json:"subscribers"`
+	PublishedAt int64         `json:"published_at"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
 }

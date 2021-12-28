@@ -3,7 +3,9 @@ package data
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"log"
 	"math"
 
 	db "github.com/dkgv/dislikes/generated/sql"
@@ -11,26 +13,9 @@ import (
 	"github.com/dkgv/dislikes/internal/types"
 )
 
-type DislikeRepo interface {
-	Insert(ctx context.Context, videoID string, userID string) error
-	Delete(ctx context.Context, videoID string, userID string) error
-	FindByID(ctx context.Context, videoID string, userID string) (db.OpenYoutubeDislikesDislike, error)
-}
-
-type LikeRepo interface {
-	Insert(ctx context.Context, videoID string, userID string) error
-	Delete(ctx context.Context, videoID string, userID string) error
-	FindByID(ctx context.Context, videoID string, userID string) (db.OpenYoutubeDislikesLike, error)
-}
-
 type VideoRepo interface {
-	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views, comments, subscribers, publishedAt uint32) error
+	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views uint32, comments *uint32, subscribers uint32, publishedAt int64) error
 	FindNByHash(ctx context.Context, idHash string, maxCount int32) ([]db.OpenYoutubeDislikesVideo, error)
-}
-
-type UserRepo interface {
-	FindByID(ctx context.Context, id string) (db.OpenYoutubeDislikesUser, error)
-	Insert(ctx context.Context, id string) error
 }
 
 type MLService interface {
@@ -38,27 +23,21 @@ type MLService interface {
 }
 
 type Service struct {
-	dislikeRepo DislikeRepo
-	likeRepo    LikeRepo
-	videoRepo   VideoRepo
-	mlService   MLService
-	userRepo    UserRepo
+	videoRepo VideoRepo
+	mlService MLService
 }
 
-func New(mlService MLService, dislikeRepo DislikeRepo, likeRepo LikeRepo, videoRepo VideoRepo, userRepo UserRepo) *Service {
+func New(mlService MLService, videoRepo VideoRepo) *Service {
 	return &Service{
-		mlService:   mlService,
-		dislikeRepo: dislikeRepo,
-		likeRepo:    likeRepo,
-		videoRepo:   videoRepo,
-		userRepo:    userRepo,
+		mlService: mlService,
+		videoRepo: videoRepo,
 	}
 }
 
-func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.Video) (string, error) {
+func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.Video) (uint32, string, error) {
 	prediction, err := s.mlService.Predict(ctx, apiVersion, video)
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 
 	predictionString := fmt.Sprintf("%d", prediction)
@@ -70,7 +49,7 @@ func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.V
 		predictionString = fmt.Sprintf("%dK", prediction)
 	}
 
-	return predictionString, nil
+	return prediction, predictionString, nil
 }
 
 func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion int, video types.Video, count int32) ([]types.DislikeEstimation, error) {
@@ -96,61 +75,8 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 	return estimations, nil
 }
 
-func (s *Service) AddDislike(ctx context.Context, videoID string, userID string) error {
-	err := s.userRepo.Insert(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	return s.dislikeRepo.Insert(ctx, videoID, userID)
-}
-
-func (s *Service) RemoveDislike(ctx context.Context, videoID string, userID string) error {
-	user, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil || user == (db.OpenYoutubeDislikesUser{}) {
-		return err
-	}
-
-	return s.dislikeRepo.Delete(ctx, videoID, userID)
-}
-
-func (s *Service) AddLike(ctx context.Context, videoID string, userID string) error {
-	err := s.userRepo.Insert(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	return s.likeRepo.Insert(ctx, videoID, userID)
-}
-
-func (s *Service) RemoveLike(ctx context.Context, videoID string, userID string) error {
-	user, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil || user == (db.OpenYoutubeDislikesUser{}) {
-		return err
-	}
-
-	return s.likeRepo.Delete(ctx, videoID, userID)
-}
-
-func (s *Service) HasDislikedVideo(ctx context.Context, videoID string, userID string) (bool, error) {
-	dislike, err := s.dislikeRepo.FindByID(ctx, videoID, userID)
-	if err != nil {
-		return false, err
-	}
-
-	return dislike != (db.OpenYoutubeDislikesDislike{}), nil
-}
-
-func (s *Service) HasLikedVideo(ctx context.Context, videoID string, userID string) (bool, error) {
-	dislike, err := s.likeRepo.FindByID(ctx, videoID, userID)
-	if err != nil {
-		return false, err
-	}
-
-	return dislike != (db.OpenYoutubeDislikesLike{}), nil
-}
-
 func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {
+	log.Println("Adding video", videoID)
 	videoIDHash := hashString(videoID)
 	return s.videoRepo.Upsert(
 		ctx,
@@ -166,6 +92,8 @@ func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Vi
 }
 
 func hashString(input string) string {
-	hashedInputBytes := sha256.Sum256([]byte(input))
-	return string(hashedInputBytes[:])
+	hash := sha256.New()
+	hash.Write([]byte(input))
+	md := hash.Sum(nil)
+	return hex.EncodeToString(md)
 }
