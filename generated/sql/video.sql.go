@@ -83,7 +83,8 @@ INSERT INTO open_youtube_dislikes.video
             dislikes = GREATEST(video.dislikes, excluded.dislikes),
             views = GREATEST(video.views, excluded.views),
             comments = GREATEST(video.comments, excluded.comments),
-            subscribers = GREATEST(video.subscribers, excluded.subscribers)
+            subscribers = GREATEST(video.subscribers, excluded.subscribers),
+            updated_at = NOW()
         WHERE video.likes <= excluded.likes
             OR video.dislikes <= excluded.dislikes
             OR video.views < excluded.views

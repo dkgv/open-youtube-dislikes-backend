@@ -22,12 +22,13 @@ func migrateSchemas(conn *sql.DB) error {
 		return err
 	}
 
-	migrationSource, err := NewEmbeddedFileSource("migrations")
+	embeddedSource := &EmbbedSource{fs: embeddedFiles}
+	sourceDriver, err := embeddedSource.Open("migrations")
 	if err != nil {
 		return err
 	}
 
-	migration, err := migrate.NewWithInstance("", migrationSource, "postgres", driver)
+	migration, err := migrate.NewWithInstance("", sourceDriver, "postgres", driver)
 	if err != nil {
 		return err
 	}
@@ -44,20 +45,6 @@ type EmbbedSource struct {
 	fs embed.FS
 }
 
-func NewEmbeddedFileSource(path string) (source.Driver, error) {
-	embeddedSource := &EmbbedSource{fs: embeddedFiles}
-	sourceDriver, err := embeddedSource.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return sourceDriver, nil
-}
-
-func init() {
-	source.Register("embed", &EmbbedSource{})
-}
-
 func (e *EmbbedSource) Open(path string) (source.Driver, error) {
 	es := &EmbbedSource{fs: e.fs}
 	if err := es.Init(http.FS(es.fs), path); err != nil {
@@ -65,4 +52,8 @@ func (e *EmbbedSource) Open(path string) (source.Driver, error) {
 	}
 
 	return es, nil
+}
+
+func init() {
+	source.Register("embed", &EmbbedSource{})
 }
