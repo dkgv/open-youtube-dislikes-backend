@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"log"
 
 	"github.com/dkgv/dislikes/generated/restapi/models"
 	"github.com/dkgv/dislikes/generated/restapi/restapi/operations"
@@ -17,31 +16,26 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, swa
 		ctx := context.Background()
 
 		if params.Video == nil {
-			log.Println("Video is nil")
 			return operations.NewPostVideoIDBadRequest()
 		}
 
 		err := dislikeService.AddVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
 		if err != nil {
-			log.Println("Error while adding video: ", err)
 			return operations.NewPostVideoIDBadRequest()
 		}
 
 		hasLiked, err := userService.HasLikedVideo(ctx, params.ID, params.XUserID)
 		if err != nil {
-			log.Println("Erro likedr while adding video: ", err)
 			return operations.NewPostVideoIDBadRequest()
 		}
 
 		hasDisliked, err := userService.HasDislikedVideo(ctx, params.ID, params.XUserID)
 		if err != nil {
-			log.Println("Erro dislikedr while adding video: ", err)
 			return operations.NewPostVideoIDBadRequest()
 		}
 
 		dislikes, formattedDislikes, err := dislikeService.GetDislikes(ctx, 1, params.ID, mappers.SwaggerVideoToVideo(params.Video))
 		if err != nil {
-			log.Println("Erro dislikes get while adding video: ", err)
 			return operations.NewPostVideoIDBadRequest()
 		}
 

@@ -15,7 +15,8 @@ require (
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4
 	go.uber.org/atomic v1.9.0 // indirect
-	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb
 )

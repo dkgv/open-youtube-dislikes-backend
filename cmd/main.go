@@ -12,28 +12,36 @@ import (
 	"github.com/dkgv/dislikes/internal/logic/ml"
 	"github.com/dkgv/dislikes/internal/logic/user"
 	"github.com/dkgv/dislikes/internal/swagger"
+	"github.com/dkgv/dislikes/internal/youtube"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if os.Getenv("ENV") != "prod" {
+		err := godotenv.Load()
+		if err != nil {
+			return
+		}
+	}
+
 	conn, err := database.NewConnection()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	// Define repositories
 	dislikeRepo := repo.NewDislikeRepo(conn)
 	likeRepo := repo.NewLikeRepo(conn)
 	videoRepo := repo.NewVideoRepo(conn)
 	userRepo := repo.NewUserRepo(conn)
 
-	// Define services
 	mlService, err := ml.New()
 	if err != nil {
 		return
 	}
 
-	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo)
+	youtubeClient := youtube.New()
+	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo, youtubeClient)
 	userService := user.New(userRepo, likeRepo, dislikeRepo)
 
 	instance := swagger.New(dislikeService, userService)

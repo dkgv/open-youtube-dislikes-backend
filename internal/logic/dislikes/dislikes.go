@@ -4,13 +4,16 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math"
+	"strconv"
 
 	db "github.com/dkgv/dislikes/generated/sql"
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/mappers"
 	"github.com/dkgv/dislikes/internal/types"
+	"github.com/dkgv/dislikes/internal/youtube"
 )
 
 type VideoRepo interface {
@@ -27,41 +30,75 @@ type DislikeRepo interface {
 	GetDislikeCount(ctx context.Context, videoID string) (int64, error)
 }
 
-type Service struct {
-	videoRepo   VideoRepo
-	mlService   MLService
-	dislikeRepo DislikeRepo
+type YouTubeClient interface {
+	GetStatistics(videoID string) (*youtube.StatisticsResponse, error)
 }
 
-func New(mlService MLService, videoRepo VideoRepo, dislikeRepo DislikeRepo) *Service {
+type Service struct {
+	videoRepo     VideoRepo
+	mlService     MLService
+	dislikeRepo   DislikeRepo
+	youtubeClient YouTubeClient
+}
+
+func New(mlService MLService, videoRepo VideoRepo, dislikeRepo DislikeRepo, youtubeClient YouTubeClient) *Service {
 	return &Service{
-		mlService:   mlService,
-		videoRepo:   videoRepo,
-		dislikeRepo: dislikeRepo,
+		mlService:     mlService,
+		videoRepo:     videoRepo,
+		dislikeRepo:   dislikeRepo,
+		youtubeClient: youtubeClient,
 	}
 }
 
 func (s *Service) GetDislikes(ctx context.Context, apiVersion int, videoID string, video types.Video) (int64, string, error) {
-	exactDislikes, err := s.retrieveExactAmount(ctx, videoID)
+	exactDislikes, err := s.retrieveExactDislikes(ctx, videoID)
 	if err == nil {
 		return exactDislikes, formatDislikes(exactDislikes), nil
 	}
 
-	predictedDislikes, err := s.mlService.Predict(ctx, apiVersion, video)
-	if err == nil {
-		return predictedDislikes, "~" + formatDislikes(predictedDislikes), nil
-	}
-
-	return 0, "0", err
+	return s.retrieveEstimatedDislikes(ctx, apiVersion, videoID, video)
 }
 
-func (s *Service) retrieveExactAmount(ctx context.Context, videoID string) (int64, error) {
+func (s *Service) retrieveEstimatedDislikes(ctx context.Context, apiVersion int, videoID string, video types.Video) (int64, string, error) {
+	// Fetch comments from YouTube API if not already present
+	if video.Comments == nil || *video.Comments == -1 {
+		statistics, err := s.youtubeClient.GetStatistics(videoID)
+		if err != nil {
+			return 0, "0", err
+		}
+
+		if len(statistics.Items) == 0 {
+			return 0, "0", errors.New("no statistics found")
+		}
+
+		commentCountString := statistics.Items[0].Statistics.CommentCount
+		commentCount, err := strconv.ParseInt(commentCountString, 10, 64)
+		if err != nil {
+			return 0, "0", err
+		}
+
+		video.Comments = &commentCount
+	}
+
+	predictedDislikes, err := s.mlService.Predict(ctx, apiVersion, video)
+	if err != nil {
+		return 0, "0", err
+	}
+
+	return predictedDislikes, "~" + formatDislikes(predictedDislikes), nil
+}
+
+func (s *Service) retrieveExactDislikes(ctx context.Context, videoID string) (int64, error) {
 	dbVideo, err := s.videoRepo.FindByID(ctx, videoID)
 	if database.IsNoRowError(err) {
 		return 0, err
 	}
 
 	historicDislikes := dbVideo.Dislikes
+	if historicDislikes == 0 {
+		return 0, errors.New("no historic dislikes")
+	}
+
 	extensionDislikes, err := s.dislikeRepo.GetDislikeCount(ctx, videoID)
 	if err != nil {
 		return historicDislikes, nil
