@@ -1,4 +1,4 @@
-package data
+package dislikes
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"math"
 
 	db "github.com/dkgv/dislikes/generated/sql"
+	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/mappers"
 	"github.com/dkgv/dislikes/internal/types"
 )
@@ -15,38 +16,68 @@ import (
 type VideoRepo interface {
 	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments *int64, subscribers int64, publishedAt int64) error
 	FindNByHash(ctx context.Context, idHash string, maxCount int32) ([]db.OpenYoutubeDislikesVideo, error)
+	FindByID(ctx context.Context, id string) (db.OpenYoutubeDislikesVideo, error)
 }
 
 type MLService interface {
 	Predict(ctx context.Context, apiVersion int, video types.Video) (int64, error)
 }
 
+type DislikeRepo interface {
+	GetDislikeCount(ctx context.Context, videoID string) (int64, error)
+}
+
 type Service struct {
-	videoRepo VideoRepo
-	mlService MLService
+	videoRepo   VideoRepo
+	mlService   MLService
+	dislikeRepo DislikeRepo
 }
 
-func New(mlService MLService, videoRepo VideoRepo) *Service {
+func New(mlService MLService, videoRepo VideoRepo, dislikeRepo DislikeRepo) *Service {
 	return &Service{
-		mlService: mlService,
-		videoRepo: videoRepo,
+		mlService:   mlService,
+		videoRepo:   videoRepo,
+		dislikeRepo: dislikeRepo,
 	}
 }
 
-func (s *Service) GetDislikes(ctx context.Context, apiVersion int, video types.Video) (int64, string, error) {
-	prediction, err := s.mlService.Predict(ctx, apiVersion, video)
+func (s *Service) GetDislikes(ctx context.Context, apiVersion int, videoID string, video types.Video) (int64, string, error) {
+	exactDislikes, err := s.retrieveExactAmount(ctx, videoID)
+	if err == nil {
+		return exactDislikes, formatDislikes(exactDislikes), nil
+	}
+
+	predictedDislikes, err := s.mlService.Predict(ctx, apiVersion, video)
+	if err == nil {
+		return predictedDislikes, "~" + formatDislikes(predictedDislikes), nil
+	}
+
+	return 0, "0", err
+}
+
+func (s *Service) retrieveExactAmount(ctx context.Context, videoID string) (int64, error) {
+	dbVideo, err := s.videoRepo.FindByID(ctx, videoID)
+	if database.IsNoRowError(err) {
+		return 0, err
+	}
+
+	historicDislikes := dbVideo.Dislikes
+	extensionDislikes, err := s.dislikeRepo.GetDislikeCount(ctx, videoID)
 	if err != nil {
-		return 0, "", err
+		return historicDislikes, nil
 	}
 
-	predictionString := fmt.Sprintf("%d", prediction)
-	if prediction > 1_000_000 {
-		predictionString = fmt.Sprintf("%dM", prediction/1_000_000)
-	} else if prediction > 1000 {
-		predictionString = fmt.Sprintf("%dK", prediction/1000)
-	}
+	return historicDislikes + extensionDislikes, nil
+}
 
-	return prediction, predictionString, nil
+func formatDislikes(dislikes int64) string {
+	formated := fmt.Sprintf("%d", dislikes)
+	if dislikes > 1_000_000 {
+		formated = fmt.Sprintf("%dM", dislikes/1_000_000)
+	} else if dislikes > 1000 {
+		formated = fmt.Sprintf("%dK", dislikes/1000)
+	}
+	return formated
 }
 
 func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion int, video types.Video, count int32) ([]types.DislikeEstimation, error) {

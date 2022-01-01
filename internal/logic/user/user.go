@@ -5,6 +5,7 @@ import (
 	"log"
 
 	db "github.com/dkgv/dislikes/generated/sql"
+	"github.com/dkgv/dislikes/internal/database"
 )
 
 type UserRepo interface {
@@ -81,7 +82,7 @@ func (s *Service) HasDislikedVideo(ctx context.Context, videoID string, userID s
 	}
 
 	_, err = s.dislikeRepo.FindByID(ctx, videoID, userID)
-	if err != nil && err.Error() == "sql: no rows in result set" {
+	if database.IsNoRowError(err) {
 		return false, nil
 	}
 
@@ -96,7 +97,7 @@ func (s *Service) HasLikedVideo(ctx context.Context, videoID string, userID stri
 	}
 
 	_, err = s.likeRepo.FindByID(ctx, videoID, userID)
-	if err != nil && err.Error() == "sql: no rows in result set" {
+	if database.IsNoRowError(err) {
 		return false, nil
 	}
 

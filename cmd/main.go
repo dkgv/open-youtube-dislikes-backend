@@ -8,7 +8,7 @@ import (
 
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/database/repo"
-	"github.com/dkgv/dislikes/internal/logic/data"
+	"github.com/dkgv/dislikes/internal/logic/dislikes"
 	"github.com/dkgv/dislikes/internal/logic/ml"
 	"github.com/dkgv/dislikes/internal/logic/user"
 	"github.com/dkgv/dislikes/internal/swagger"
@@ -33,10 +33,10 @@ func main() {
 		return
 	}
 
-	dataService := data.New(mlService, videoRepo)
+	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo)
 	userService := user.New(userRepo, likeRepo, dislikeRepo)
 
-	instance := swagger.New(dataService, userService)
+	instance := swagger.New(dislikeService, userService)
 	instance.Run()
 
 	log.Println("Server started successfully")

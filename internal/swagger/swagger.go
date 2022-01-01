@@ -6,21 +6,21 @@ import (
 
 	"github.com/dkgv/dislikes/generated/restapi/restapi"
 	"github.com/dkgv/dislikes/generated/restapi/restapi/operations"
-	"github.com/dkgv/dislikes/internal/logic/data"
+	"github.com/dkgv/dislikes/internal/logic/dislikes"
 	"github.com/dkgv/dislikes/internal/logic/user"
 	"github.com/dkgv/dislikes/internal/swagger/handlers"
 	"github.com/go-openapi/loads"
 )
 
 type API struct {
-	DataService *data.Service
-	UserService *user.Service
+	DislikeService *dislikes.Service
+	UserService    *user.Service
 }
 
-func New(dataService *data.Service, userService *user.Service) *API {
+func New(dislikeService *dislikes.Service, userService *user.Service) *API {
 	return &API{
-		DataService: dataService,
-		UserService: userService,
+		DislikeService: dislikeService,
+		UserService:    userService,
 	}
 }
 
@@ -31,7 +31,7 @@ func (a *API) Run() {
 	}
 
 	api := operations.NewOpenYoutubeDislikesBackendAPI(spec)
-	handlers.Initialize(a.DataService, a.UserService, api)
+	handlers.Initialize(a.DislikeService, a.UserService, api)
 
 	server := restapi.NewServer(api)
 	server.Port = 5000
