@@ -79,6 +79,11 @@ definitions:
       - remove
 
   VideoResponse:
+    required:
+      - dislikes
+      - formattedDislikes
+      - hasLiked
+      - hasDisliked
     type: object
     properties:
       dislikes:

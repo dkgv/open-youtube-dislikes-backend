@@ -150,6 +150,12 @@ func init() {
     },
     "VideoResponse": {
       "type": "object",
+      "required": [
+        "dislikes",
+        "formattedDislikes",
+        "hasLiked",
+        "hasDisliked"
+      ],
       "properties": {
         "dislikes": {
           "type": "integer"
@@ -341,6 +347,12 @@ func init() {
     },
     "VideoResponse": {
       "type": "object",
+      "required": [
+        "dislikes",
+        "formattedDislikes",
+        "hasLiked",
+        "hasDisliked"
+      ],
       "properties": {
         "dislikes": {
           "type": "integer"

@@ -40,10 +40,10 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, swa
 		}
 
 		return operations.NewPostVideoIDOK().WithPayload(&models.VideoResponse{
-			HasDisliked:       hasDisliked,
-			HasLiked:          hasLiked,
-			Dislikes:          dislikes,
-			FormattedDislikes: formattedDislikes,
+			HasDisliked:       &hasDisliked,
+			HasLiked:          &hasLiked,
+			Dislikes:          &dislikes,
+			FormattedDislikes: &formattedDislikes,
 		})
 	})
 

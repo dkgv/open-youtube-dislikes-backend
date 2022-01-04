@@ -8,8 +8,10 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // VideoResponse video response
@@ -18,20 +20,81 @@ import (
 type VideoResponse struct {
 
 	// dislikes
-	Dislikes int64 `json:"dislikes,omitempty"`
+	// Required: true
+	Dislikes *int64 `json:"dislikes"`
 
 	// Formatted number of dislikes
-	FormattedDislikes string `json:"formattedDislikes,omitempty"`
+	// Required: true
+	FormattedDislikes *string `json:"formattedDislikes"`
 
 	// has disliked
-	HasDisliked bool `json:"hasDisliked,omitempty"`
+	// Required: true
+	HasDisliked *bool `json:"hasDisliked"`
 
 	// has liked
-	HasLiked bool `json:"hasLiked,omitempty"`
+	// Required: true
+	HasLiked *bool `json:"hasLiked"`
 }
 
 // Validate validates this video response
 func (m *VideoResponse) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateDislikes(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateFormattedDislikes(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHasDisliked(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHasLiked(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *VideoResponse) validateDislikes(formats strfmt.Registry) error {
+
+	if err := validate.Required("dislikes", "body", m.Dislikes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *VideoResponse) validateFormattedDislikes(formats strfmt.Registry) error {
+
+	if err := validate.Required("formattedDislikes", "body", m.FormattedDislikes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *VideoResponse) validateHasDisliked(formats strfmt.Registry) error {
+
+	if err := validate.Required("hasDisliked", "body", m.HasDisliked); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *VideoResponse) validateHasLiked(formats strfmt.Registry) error {
+
+	if err := validate.Required("hasLiked", "body", m.HasLiked); err != nil {
+		return err
+	}
+
 	return nil
 }
 
