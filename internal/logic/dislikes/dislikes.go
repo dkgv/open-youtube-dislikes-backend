@@ -50,36 +50,22 @@ func New(mlService MLService, videoRepo VideoRepo, dislikeRepo DislikeRepo, yout
 	}
 }
 
-func (s *Service) GetDislikes(ctx context.Context, apiVersion int, videoID string, video types.Video) (int64, string, error) {
+func (s *Service) GetDislikes(ctx context.Context, apiVersion int, videoID string) (int64, string, error) {
 	exactDislikes, err := s.retrieveExactDislikes(ctx, videoID)
 	if err == nil {
 		return exactDislikes, formatDislikes(exactDislikes), nil
 	}
 
-	return s.retrieveEstimatedDislikes(ctx, apiVersion, videoID, video)
+	return s.retrieveEstimatedDislikes(ctx, apiVersion, videoID)
 }
 
-func (s *Service) retrieveEstimatedDislikes(ctx context.Context, apiVersion int, videoID string, video types.Video) (int64, string, error) {
-	// Fetch comments from YouTube API if not already present
-	if video.Comments == nil || *video.Comments == -1 {
-		statistics, err := s.youtubeClient.GetStatistics(videoID)
-		if err != nil {
-			return 0, "0", err
-		}
-
-		if len(statistics.Items) == 0 {
-			return 0, "0", errors.New("no statistics found")
-		}
-
-		commentCountString := statistics.Items[0].Statistics.CommentCount
-		commentCount, err := strconv.ParseInt(commentCountString, 10, 64)
-		if err != nil {
-			return 0, "0", err
-		}
-
-		video.Comments = &commentCount
+func (s *Service) retrieveEstimatedDislikes(ctx context.Context, apiVersion int, videoID string) (int64, string, error) {
+	dbVideo, err := s.videoRepo.FindByID(ctx, videoID)
+	if err != nil {
+		return 0, "0", err
 	}
 
+	video := mappers.DBVideoToVideo(dbVideo)
 	predictedDislikes, err := s.mlService.Predict(ctx, apiVersion, video)
 	if err != nil {
 		return 0, "0", err
@@ -140,19 +126,43 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 	return estimations, nil
 }
 
-func (s *Service) AddVideo(ctx context.Context, videoID string, details types.Video) error {
+func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Video) error {
+	if video.Comments == nil || *video.Comments == -1 {
+		_ = s.augmentVideo(videoID, &video)
+	}
+
 	videoIDHash := hashString(videoID)
 	return s.videoRepo.Upsert(
 		ctx,
 		videoID,
 		videoIDHash,
-		details.Likes,
-		details.Dislikes,
-		details.Views,
-		details.Comments,
-		details.Subscribers,
-		details.PublishedAt,
+		video.Likes,
+		video.Dislikes,
+		video.Views,
+		video.Comments,
+		video.Subscribers,
+		video.PublishedAt,
 	)
+}
+
+func (s *Service) augmentVideo(videoID string, video *types.Video) error {
+	statistics, err := s.youtubeClient.GetStatistics(videoID)
+	if err != nil {
+		return err
+	}
+
+	if len(statistics.Items) == 0 {
+		return errors.New("no statistics found")
+	}
+
+	commentCountString := statistics.Items[0].Statistics.CommentCount
+	commentCount, err := strconv.ParseInt(commentCountString, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	video.Comments = &commentCount
+	return nil
 }
 
 func hashString(input string) string {
