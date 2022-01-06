@@ -42,16 +42,12 @@ func (s *Service) Predict(ctx context.Context, apiVersion int, video types.Video
 }
 
 func (s *Service) predictV1(video types.Video) (int64, error) {
-	comments := 0.0
-	if video.Comments != nil {
-		comments = float64(*video.Comments)
-	}
 	input := mat.SparseMatrix{
 		Vectors: []mat.SparseVector{
 			{
 				0: float64(video.Views),
 				1: float64(video.Likes),
-				2: comments,
+				2: float64(video.Comments),
 				3: video.ViewsPerLike(),
 				4: video.LikesPerComment(),
 				5: video.ViewsPerComment(),

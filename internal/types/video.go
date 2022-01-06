@@ -7,7 +7,7 @@ type Video struct {
 	Views       int64  `json:"views,omitempty"`
 	Likes       int64  `json:"likes,omitempty"`
 	Dislikes    int64  `json:"dislikes,omitempty"`
-	Comments    *int64 `json:"comments,omitempty"`
+	Comments    int64  `json:"comments,omitempty"`
 	PublishedAt int64  `json:"publishedAt,omitempty"`
 	Subscribers int64  `json:"subscribers,omitempty"`
 }
@@ -26,15 +26,15 @@ func (v Video) DaysSincePublish() int32 {
 }
 
 func (v Video) ViewsPerComment() float64 {
-	if v.Comments == nil {
+	if v.Comments == 0 {
 		return 0
 	}
-	return float64(v.Views) / float64(*v.Comments) / 100
+	return float64(v.Views) / float64(v.Comments) / 100
 }
 
 func (v Video) LikesPerComment() float64 {
-	if v.Comments == nil {
+	if v.Comments == 0 {
 		return 0
 	}
-	return float64(v.Likes) / float64(*v.Comments) / 100
+	return float64(v.Likes) / float64(v.Comments) / 100
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 	"strconv"
 
@@ -17,7 +18,7 @@ import (
 )
 
 type VideoRepo interface {
-	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments *int64, subscribers int64, publishedAt int64) error
+	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments int64, subscribers int64, publishedAt int64) error
 	FindNByHash(ctx context.Context, idHash string, maxCount int32) ([]db.OpenYoutubeDislikesVideo, error)
 	FindByID(ctx context.Context, id string) (db.OpenYoutubeDislikesVideo, error)
 }
@@ -127,8 +128,11 @@ func (s *Service) GetDislikeEstimationsByHash(ctx context.Context, apiVersion in
 }
 
 func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Video) error {
-	if video.Comments == nil || *video.Comments == -1 {
-		_ = s.augmentVideo(videoID, &video)
+	if video.Comments < 0 {
+		err := s.augmentVideo(videoID, &video)
+		if err != nil {
+			log.Printf("Failed to augment video %s: %s", videoID, err)
+		}
 	}
 
 	videoIDHash := hashString(videoID)
@@ -146,22 +150,30 @@ func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Vide
 }
 
 func (s *Service) augmentVideo(videoID string, video *types.Video) error {
-	statistics, err := s.youtubeClient.GetStatistics(videoID)
+	resp, err := s.youtubeClient.GetStatistics(videoID)
 	if err != nil {
 		return err
 	}
 
-	if len(statistics.Items) == 0 {
+	if len(resp.Items) == 0 {
 		return errors.New("no statistics found")
 	}
 
-	commentCountString := statistics.Items[0].Statistics.CommentCount
+	statistics := resp.Items[0].Statistics
+	commentCountString := statistics.CommentCount
 	commentCount, err := strconv.ParseInt(commentCountString, 10, 64)
 	if err != nil {
-		return err
+		commentCount = 0
 	}
 
-	video.Comments = &commentCount
+	viewCountString := statistics.ViewCount
+	viewCount, err := strconv.ParseInt(viewCountString, 10, 64)
+	if err != nil {
+		viewCount = 0
+	}
+
+	video.Comments = commentCount
+	video.Views = viewCount
 	return nil
 }
 

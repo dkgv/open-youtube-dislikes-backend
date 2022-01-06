@@ -13,7 +13,7 @@ func DBVideoToVideo(video db.OpenYoutubeDislikesVideo) types.Video {
 		Views:       video.Views,
 		Likes:       video.Likes,
 		Dislikes:    video.Dislikes,
-		Comments:    &comments,
+		Comments:    comments,
 		PublishedAt: video.PublishedAt,
 		Subscribers: video.Subscribers,
 	}
@@ -26,7 +26,7 @@ func SwaggerVideoToVideo(video *models.Video) types.Video {
 		Views:       video.Views,
 		Likes:       video.Likes,
 		Dislikes:    video.Dislikes,
-		Comments:    &comments,
+		Comments:    comments,
 		PublishedAt: video.PublishedAt,
 		Subscribers: video.Subscribers,
 	}
