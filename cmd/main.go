@@ -11,6 +11,7 @@ import (
 	"github.com/dkgv/dislikes/internal/logic/dislikes"
 	"github.com/dkgv/dislikes/internal/logic/ml"
 	"github.com/dkgv/dislikes/internal/logic/user"
+	"github.com/dkgv/dislikes/internal/logic/video"
 	"github.com/dkgv/dislikes/internal/swagger"
 	"github.com/dkgv/dislikes/internal/youtube"
 	"github.com/joho/godotenv"
@@ -41,10 +42,11 @@ func main() {
 	}
 
 	youtubeClient := youtube.New()
-	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo, youtubeClient)
+	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo)
 	userService := user.New(userRepo, likeRepo, dislikeRepo)
+	videoService := video.New(videoRepo, youtubeClient)
 
-	instance := swagger.New(dislikeService, userService)
+	instance := swagger.New(dislikeService, userService, videoService)
 	instance.Run()
 
 	log.Println("Server started successfully")

@@ -7,11 +7,12 @@ import (
 	"github.com/dkgv/dislikes/generated/restapi/restapi/operations"
 	"github.com/dkgv/dislikes/internal/logic/dislikes"
 	"github.com/dkgv/dislikes/internal/logic/user"
+	"github.com/dkgv/dislikes/internal/logic/video"
 	"github.com/dkgv/dislikes/internal/mappers"
 	"github.com/go-openapi/runtime/middleware"
 )
 
-func Initialize(dislikeService *dislikes.Service, userService *user.Service, swagger *operations.OpenYoutubeDislikesBackendAPI) {
+func Initialize(dislikeService *dislikes.Service, userService *user.Service, videoService *video.Service, swagger *operations.OpenYoutubeDislikesBackendAPI) {
 	swagger.PostVideoIDHandler = operations.PostVideoIDHandlerFunc(func(params operations.PostVideoIDParams) middleware.Responder {
 		ctx := context.Background()
 
@@ -19,7 +20,7 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, swa
 			return operations.NewPostVideoIDBadRequest()
 		}
 
-		err := dislikeService.AddVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
+		err := videoService.AddVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
 		if err != nil {
 			return operations.NewPostVideoIDBadRequest()
 		}
