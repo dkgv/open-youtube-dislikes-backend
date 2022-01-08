@@ -1,0 +1,12 @@
+{
+  "cron": [
+    {
+      "command": "go run scripts/augment.go",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "command": "go run scripts/augment.go",
+      "schedule": "0 12 * * * "
+    }
+  ]
+}
