@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS open_youtube_dislikes.video (
 
 CREATE INDEX IF NOT EXISTS video_id_index ON open_youtube_dislikes.video (id);
 CREATE INDEX IF NOT EXISTS video_id_hash_index ON open_youtube_dislikes.video (id_hash);
+CREATE INDEX IF NOT EXISTS video_updated_at_index ON open_youtube_dislikes.video (updated_at);
 
 CREATE TABLE IF NOT EXISTS open_youtube_dislikes."user" (
     id TEXT NOT NULL PRIMARY KEY,

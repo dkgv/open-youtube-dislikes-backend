@@ -51,6 +51,44 @@ func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHa
 	return items, nil
 }
 
+const findNVideosWithoutComments = `-- name: FindNVideosWithoutComments :many
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE comments <= 0 ORDER BY updated_at LIMIT $1
+`
+
+func (q *Queries) FindNVideosWithoutComments(ctx context.Context, limit int32) ([]OpenYoutubeDislikesVideo, error) {
+	rows, err := q.query(ctx, q.findNVideosWithoutCommentsStmt, findNVideosWithoutComments, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OpenYoutubeDislikesVideo{}
+	for rows.Next() {
+		var i OpenYoutubeDislikesVideo
+		if err := rows.Scan(
+			&i.ID,
+			&i.IDHash,
+			&i.Likes,
+			&i.Dislikes,
+			&i.Views,
+			&i.Comments,
+			&i.Subscribers,
+			&i.PublishedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const findVideoDetailsByID = `-- name: FindVideoDetailsByID :one
 SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE id = $1
 `

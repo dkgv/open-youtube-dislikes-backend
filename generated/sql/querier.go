@@ -13,6 +13,7 @@ type Querier interface {
 	FindDislike(ctx context.Context, arg FindDislikeParams) (OpenYoutubeDislikesDislike, error)
 	FindLike(ctx context.Context, arg FindLikeParams) (OpenYoutubeDislikesLike, error)
 	FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHashParams) ([]OpenYoutubeDislikesVideo, error)
+	FindNVideosWithoutComments(ctx context.Context, limit int32) ([]OpenYoutubeDislikesVideo, error)
 	FindUserByID(ctx context.Context, id string) (OpenYoutubeDislikesUser, error)
 	FindVideoDetailsByID(ctx context.Context, id string) (OpenYoutubeDislikesVideo, error)
 	GetDislikeCount(ctx context.Context, videoID string) (int64, error)

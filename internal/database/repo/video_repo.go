@@ -38,3 +38,7 @@ func (v *VideoRepo) Upsert(ctx context.Context, id string, idHash string, likes,
 		PublishedAt: publishedAt,
 	})
 }
+
+func (v *VideoRepo) FindNVideosWithoutComments(ctx context.Context, maxCount int32) ([]db.OpenYoutubeDislikesVideo, error) {
+	return v.querier.FindNVideosWithoutComments(ctx, maxCount)
+}

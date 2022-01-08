@@ -22,3 +22,6 @@ INSERT INTO open_youtube_dislikes.video
             OR video.comments <= excluded.comments
             OR video.subscribers <= excluded.subscribers
             OR video.published_at = excluded.published_at;
+
+-- name: FindNVideosWithoutComments :many
+SELECT * FROM open_youtube_dislikes.video WHERE comments <= 0 ORDER BY updated_at LIMIT $1;

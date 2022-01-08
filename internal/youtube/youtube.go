@@ -3,8 +3,10 @@ package youtube
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type Client struct {
@@ -18,8 +20,8 @@ func New() *Client {
 	}
 }
 
-func (c *Client) GetStatistics(videoID string) (*StatisticsResponse, error) {
-	url := c.buildURL(videoID)
+func (c *Client) GetVideosList(videoIDs []string) (*VideosListResponse, error) {
+	url := c.buildURL(videoIDs)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -33,7 +35,7 @@ func (c *Client) GetStatistics(videoID string) (*StatisticsResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	statistics := &StatisticsResponse{}
+	statistics := &VideosListResponse{}
 	err = json.NewDecoder(resp.Body).Decode(statistics)
 	if err != nil {
 		return nil, err
@@ -42,7 +44,9 @@ func (c *Client) GetStatistics(videoID string) (*StatisticsResponse, error) {
 	return statistics, nil
 }
 
-func (c *Client) buildURL(videoID string) string {
-	url := "https://youtube.googleapis.com/youtube/v3/videos?part=statistics&id=%s&key=%s"
-	return fmt.Sprintf(url, videoID, c.key)
+func (c *Client) buildURL(videoIDs []string) string {
+	videoIDsParam := strings.Join(videoIDs, ",")
+	maxResults := int(math.Min(float64(len(videoIDs)), 50))
+	url := "https://youtube.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=%s&key=%s&maxResults=%d"
+	return fmt.Sprintf(url, videoIDsParam, c.key, maxResults)
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	_ "github.com/lib/pq"
@@ -22,8 +21,7 @@ func migrateSchemas(conn *sql.DB) error {
 		return err
 	}
 
-	embeddedSource := &EmbbedSource{fs: embeddedFiles}
-	sourceDriver, err := embeddedSource.Open("migrations")
+	sourceDriver, err := httpfs.New(http.FS(embeddedFiles), "migrations")
 	if err != nil {
 		return err
 	}
@@ -38,22 +36,4 @@ func migrateSchemas(conn *sql.DB) error {
 	}
 
 	return nil
-}
-
-type EmbbedSource struct {
-	httpfs.PartialDriver
-	fs embed.FS
-}
-
-func (e *EmbbedSource) Open(path string) (source.Driver, error) {
-	es := &EmbbedSource{fs: e.fs}
-	if err := es.Init(http.FS(es.fs), path); err != nil {
-		return nil, err
-	}
-
-	return es, nil
-}
-
-func init() {
-	source.Register("embed", &EmbbedSource{})
 }
