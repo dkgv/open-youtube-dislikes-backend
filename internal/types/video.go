@@ -10,7 +10,7 @@ type Video struct {
 	Comments    int64  `json:"comments,omitempty"`
 	PublishedAt int64  `json:"publishedAt,omitempty"`
 	Subscribers int64  `json:"subscribers,omitempty"`
-	DurationSec int64  `json:"durationSec,omitempty"`
+	DurationSec int32  `json:"durationSec,omitempty"`
 }
 
 func (v Video) ViewsPerLike() float64 {

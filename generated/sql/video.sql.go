@@ -9,7 +9,7 @@ import (
 )
 
 const findNVideosByIDHash = `-- name: FindNVideosByIDHash :many
-SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE id_hash LIKE $1 LIMIT $2
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at, duration_sec FROM open_youtube_dislikes.video WHERE id_hash LIKE $1 LIMIT $2
 `
 
 type FindNVideosByIDHashParams struct {
@@ -37,6 +37,7 @@ func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHa
 			&i.PublishedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DurationSec,
 		); err != nil {
 			return nil, err
 		}
@@ -52,7 +53,7 @@ func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHa
 }
 
 const findNVideosWithoutComments = `-- name: FindNVideosWithoutComments :many
-SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE comments <= 0 ORDER BY updated_at LIMIT $1
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at, duration_sec FROM open_youtube_dislikes.video WHERE comments <= 0 ORDER BY updated_at LIMIT $1
 `
 
 func (q *Queries) FindNVideosWithoutComments(ctx context.Context, limit int32) ([]OpenYoutubeDislikesVideo, error) {
@@ -75,6 +76,7 @@ func (q *Queries) FindNVideosWithoutComments(ctx context.Context, limit int32) (
 			&i.PublishedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DurationSec,
 		); err != nil {
 			return nil, err
 		}
@@ -90,7 +92,7 @@ func (q *Queries) FindNVideosWithoutComments(ctx context.Context, limit int32) (
 }
 
 const findVideoDetailsByID = `-- name: FindVideoDetailsByID :one
-SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at FROM open_youtube_dislikes.video WHERE id = $1
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at, duration_sec FROM open_youtube_dislikes.video WHERE id = $1
 `
 
 func (q *Queries) FindVideoDetailsByID(ctx context.Context, id string) (OpenYoutubeDislikesVideo, error) {
@@ -107,14 +109,15 @@ func (q *Queries) FindVideoDetailsByID(ctx context.Context, id string) (OpenYout
 		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationSec,
 	)
 	return i, err
 }
 
 const upsertVideoDetails = `-- name: UpsertVideoDetails :exec
 INSERT INTO open_youtube_dislikes.video
-    (id, id_hash, likes, dislikes, views, comments, subscribers, published_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    (id, id_hash, likes, dislikes, views, comments, subscribers, published_at, duration_sec)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     ON CONFLICT (id) DO
         UPDATE SET
             likes = GREATEST(video.likes, excluded.likes),
@@ -122,12 +125,14 @@ INSERT INTO open_youtube_dislikes.video
             views = GREATEST(video.views, excluded.views),
             comments = GREATEST(video.comments, excluded.comments),
             subscribers = GREATEST(video.subscribers, excluded.subscribers),
+            duration_sec = GREATEST(video.duration_sec, excluded.duration_sec),
             updated_at = NOW()
         WHERE video.likes <= excluded.likes
             OR video.dislikes <= excluded.dislikes
             OR video.views < excluded.views
             OR video.comments <= excluded.comments
             OR video.subscribers <= excluded.subscribers
+            OR video.duration_sec <= excluded.duration_sec
             OR video.published_at = excluded.published_at
 `
 
@@ -140,6 +145,7 @@ type UpsertVideoDetailsParams struct {
 	Comments    sql.NullInt64 `json:"comments"`
 	Subscribers int64         `json:"subscribers"`
 	PublishedAt int64         `json:"published_at"`
+	DurationSec int32         `json:"duration_sec"`
 }
 
 func (q *Queries) UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetailsParams) error {
@@ -152,6 +158,7 @@ func (q *Queries) UpsertVideoDetails(ctx context.Context, arg UpsertVideoDetails
 		arg.Comments,
 		arg.Subscribers,
 		arg.PublishedAt,
+		arg.DurationSec,
 	)
 	return err
 }

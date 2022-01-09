@@ -41,4 +41,5 @@ type OpenYoutubeDislikesVideo struct {
 	PublishedAt int64         `json:"published_at"`
 	CreatedAt   time.Time     `json:"created_at"`
 	UpdatedAt   time.Time     `json:"updated_at"`
+	DurationSec int32         `json:"duration_sec"`
 }

@@ -1,11 +1,11 @@
 {
   "cron": [
     {
-      "command": "go run scripts/augment.go",
+      "command": "/bin/bash scripts/augment.sh",
       "schedule": "0 0 * * *"
     },
     {
-      "command": "go run scripts/augment.go",
+      "command": "/bin/bash scripts/augment.sh",
       "schedule": "0 12 * * * "
     }
   ]

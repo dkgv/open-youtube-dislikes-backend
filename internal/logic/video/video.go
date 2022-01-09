@@ -4,21 +4,22 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"log"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/dkgv/dislikes/internal/types"
 	"github.com/dkgv/dislikes/internal/youtube"
 )
 
 type VideoRepo interface {
-	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments int64, subscribers int64, publishedAt int64) error
+	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments int64, subscribers int64, publishedAt int64, durationSec int32) error
 }
 
 type YouTubeClient interface {
 	GetVideosList(videoIDs []string) (*youtube.VideosListResponse, error)
+	GetChannelsList(channelIDs []string) (*youtube.ChannelsListResponse, error)
 }
 
 type Service struct {
@@ -35,7 +36,7 @@ func New(videoRepo VideoRepo, youtubeClient YouTubeClient) *Service {
 
 func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Video) error {
 	if video.Views == 0 || video.Comments <= 0 {
-		err := s.AugmentVideoStruct(videoID, &video)
+		err := s.AugmentVideo(videoID, &video)
 		if err != nil {
 			log.Printf("Failed to augment video %s: %s", videoID, err)
 		}
@@ -52,6 +53,7 @@ func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Vide
 		video.Comments,
 		video.Subscribers,
 		video.PublishedAt,
+		video.DurationSec,
 	)
 }
 
@@ -62,31 +64,45 @@ func hashString(input string) string {
 	return hex.EncodeToString(md)
 }
 
-func (s *Service) AugmentVideoStruct(videoID string, video *types.Video) error {
-	resp, err := s.youtubeClient.GetVideosList([]string{videoID})
+func (s *Service) AugmentVideo(videoID string, video *types.Video) error {
+	videoResp, err := s.youtubeClient.GetVideosList([]string{videoID})
 	if err != nil {
 		return err
 	}
+	videoItem := videoResp.Items[0]
 
-	if len(resp.Items) == 0 {
-		return errors.New("no statistics found")
+	channelResp, err := s.youtubeClient.GetChannelsList([]string{videoItem.Snippet.ChannelId})
+	if err != nil {
+		return err
 	}
+	channelItem := channelResp.Items[0]
 
-	item := resp.Items[0]
-	statistics := item.Statistics
-	contentDetails := item.ContentDetails
+	return s.AugmentVideoStruct(videoItem, channelItem, video)
+}
 
-	commentCount := parseInt64(statistics.CommentCount)
-	viewCount := parseInt64(statistics.ViewCount)
+func (s *Service) AugmentVideoStruct(videoItem youtube.VideoItem, channelItem youtube.ChannelItem, video *types.Video) error {
+	statistics := videoItem.Statistics
+	contentDetails := videoItem.ContentDetails
+
 	likeCount := parseInt64(statistics.LikeCount)
+	viewCount := parseInt64(statistics.ViewCount)
+	commentCount := parseInt64(statistics.CommentCount)
+	subscribers := parseInt64(channelItem.Statistics.SubscriberCount)
+	publishedAt := parseDateToMillis(videoItem.Snippet.PublishedAt)
 	durationSec := parseDurationToSec(contentDetails.Duration)
 
-	video.Comments = max(commentCount, video.Comments)
+	video.Likes = max(likeCount, video.Likes)
 	video.Views = max(viewCount, video.Views)
-	video.Subscribers = max(likeCount, video.Likes)
-	video.DurationSec = max(durationSec, video.DurationSec)
+	video.Comments = max(commentCount, video.Comments)
+	video.Subscribers = max(subscribers, video.Subscribers)
+	video.PublishedAt = max(publishedAt, video.PublishedAt)
+	video.DurationSec = int32(max(durationSec, int64(video.DurationSec)))
 
 	return nil
+}
+
+func parseDateToMillis(date time.Time) int64 {
+	return date.UnixNano() / int64(time.Millisecond)
 }
 
 func parseDurationToSec(duration string) int64 {
