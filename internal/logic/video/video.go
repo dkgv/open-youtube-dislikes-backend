@@ -89,6 +89,7 @@ func (s *Service) AugmentVideoStruct(videoItem youtube.VideoItem, channelItem yo
 	commentCount := parseInt64(statistics.CommentCount)
 	subscribers := parseInt64(channelItem.Statistics.SubscriberCount)
 	publishedAt := parseDateToMillis(videoItem.Snippet.PublishedAt)
+	log.Println("publishedAt:", publishedAt)
 	durationSec := parseDurationToSec(contentDetails.Duration)
 
 	video.Likes = max(likeCount, video.Likes)

@@ -23,7 +23,7 @@ func main() {
 	}
 
 	videoRepo := repo.NewVideoRepo(conn)
-	videos, err := videoRepo.FindNVideosWithoutComments(context.Background(), 50_000)
+	videos, err := videoRepo.FindNVideosMissingData(context.Background(), 50_000)
 	if err != nil {
 		log.Println("Failed to find videos without comments:", err)
 		return
@@ -32,24 +32,33 @@ func main() {
 	youtubeClient := youtube.New()
 	videoService := video.New(videoRepo, youtubeClient)
 
-	batchSize := 50
-
-	log.Println("Found", len(videos), "videos without comments, resulting in", len(videos)/batchSize, "batches")
-	for i := 0; i < len(videos); i += batchSize {
+	batchSize := 40
+	for i := 0; i < len(videos)-batchSize; i += batchSize {
 		log.Println("Processing batch", i/batchSize, "i =", i)
+
 		videoIDs := make([]string, 0)
 		videoIDToVideo := make(map[string]db.OpenYoutubeDislikesVideo)
-		for j := i; j < i+batchSize; j++ {
-			vid := videos[j]
-			videoIDToVideo[vid.ID] = vid
+		index := i
+		for index < i+batchSize {
+			vid := videos[index]
+			index++
+
+			exists, err := youtubeClient.CanFind(vid.ID)
+			if !exists || err != nil {
+				_ = videoRepo.DeleteVideoByID(context.Background(), vid.ID)
+				continue
+			}
+
 			videoIDs = append(videoIDs, vid.ID)
+			videoIDToVideo[vid.ID] = vid
 		}
 
-		if videoIDs[0] == "" {
-			log.Println("videoIDs[0] is empty, skipping")
-			break
+		if len(videoIDs) == 0 {
+			log.Println("No videos to process, next batch")
+			continue
 		}
 
+		log.Println("VideoIDs:", videoIDs)
 		videoResp, err := youtubeClient.GetVideosList(videoIDs)
 		if err != nil || len(videoResp.Items) == 0 {
 			log.Println("Failed to get videos list:", err)
@@ -63,8 +72,10 @@ func main() {
 			channelIDToVideoID[videoItem.Snippet.ChannelId] = videoItem.Id
 		}
 
+		log.Println("ChannelIDs:", channelIDs)
 		channelResp, err := youtubeClient.GetChannelsList(channelIDs)
 		if err != nil {
+			log.Println("Failed to get channels list:", err)
 			continue
 		}
 
@@ -87,6 +98,7 @@ func main() {
 				continue
 			}
 
+			log.Println("Augmented video:", dbVideo.ID)
 			_ = videoRepo.Upsert(context.Background(),
 				dbVideo.ID,
 				vid.IDHash,

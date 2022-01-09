@@ -16,6 +16,7 @@ INSERT INTO open_youtube_dislikes.video
             comments = GREATEST(video.comments, excluded.comments),
             subscribers = GREATEST(video.subscribers, excluded.subscribers),
             duration_sec = GREATEST(video.duration_sec, excluded.duration_sec),
+            published_at = GREATEST(video.published_at, excluded.published_at),
             updated_at = NOW()
         WHERE video.likes <= excluded.likes
             OR video.dislikes <= excluded.dislikes
@@ -25,5 +26,8 @@ INSERT INTO open_youtube_dislikes.video
             OR video.duration_sec <= excluded.duration_sec
             OR video.published_at = excluded.published_at;
 
--- name: FindNVideosWithoutComments :many
-SELECT * FROM open_youtube_dislikes.video WHERE comments <= 0 ORDER BY updated_at LIMIT $1;
+-- name: FindNVideosMissingData :many
+SELECT * FROM open_youtube_dislikes.video WHERE published_at <= 0 ORDER BY updated_at LIMIT $1;
+
+-- name: DeleteVideoByID :exec
+DELETE FROM open_youtube_dislikes.video WHERE id = $1;

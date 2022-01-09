@@ -8,6 +8,15 @@ import (
 	"database/sql"
 )
 
+const deleteVideoByID = `-- name: DeleteVideoByID :exec
+DELETE FROM open_youtube_dislikes.video WHERE id = $1
+`
+
+func (q *Queries) DeleteVideoByID(ctx context.Context, id string) error {
+	_, err := q.exec(ctx, q.deleteVideoByIDStmt, deleteVideoByID, id)
+	return err
+}
+
 const findNVideosByIDHash = `-- name: FindNVideosByIDHash :many
 SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at, duration_sec FROM open_youtube_dislikes.video WHERE id_hash LIKE $1 LIMIT $2
 `
@@ -52,12 +61,12 @@ func (q *Queries) FindNVideosByIDHash(ctx context.Context, arg FindNVideosByIDHa
 	return items, nil
 }
 
-const findNVideosWithoutComments = `-- name: FindNVideosWithoutComments :many
-SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at, duration_sec FROM open_youtube_dislikes.video WHERE comments <= 0 ORDER BY updated_at LIMIT $1
+const findNVideosMissingData = `-- name: FindNVideosMissingData :many
+SELECT id, id_hash, likes, dislikes, views, comments, subscribers, published_at, created_at, updated_at, duration_sec FROM open_youtube_dislikes.video WHERE published_at <= 0 ORDER BY updated_at LIMIT $1
 `
 
-func (q *Queries) FindNVideosWithoutComments(ctx context.Context, limit int32) ([]OpenYoutubeDislikesVideo, error) {
-	rows, err := q.query(ctx, q.findNVideosWithoutCommentsStmt, findNVideosWithoutComments, limit)
+func (q *Queries) FindNVideosMissingData(ctx context.Context, limit int32) ([]OpenYoutubeDislikesVideo, error) {
+	rows, err := q.query(ctx, q.findNVideosMissingDataStmt, findNVideosMissingData, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +135,7 @@ INSERT INTO open_youtube_dislikes.video
             comments = GREATEST(video.comments, excluded.comments),
             subscribers = GREATEST(video.subscribers, excluded.subscribers),
             duration_sec = GREATEST(video.duration_sec, excluded.duration_sec),
+            published_at = GREATEST(video.published_at, excluded.published_at),
             updated_at = NOW()
         WHERE video.likes <= excluded.likes
             OR video.dislikes <= excluded.dislikes

@@ -28,6 +28,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteLikeStmt, err = db.PrepareContext(ctx, deleteLike); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteLike: %w", err)
 	}
+	if q.deleteVideoByIDStmt, err = db.PrepareContext(ctx, deleteVideoByID); err != nil {
+		return nil, fmt.Errorf("error preparing query DeleteVideoByID: %w", err)
+	}
 	if q.findAggregateDislikeByIDStmt, err = db.PrepareContext(ctx, findAggregateDislikeByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAggregateDislikeByID: %w", err)
 	}
@@ -40,8 +43,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findNVideosByIDHashStmt, err = db.PrepareContext(ctx, findNVideosByIDHash); err != nil {
 		return nil, fmt.Errorf("error preparing query FindNVideosByIDHash: %w", err)
 	}
-	if q.findNVideosWithoutCommentsStmt, err = db.PrepareContext(ctx, findNVideosWithoutComments); err != nil {
-		return nil, fmt.Errorf("error preparing query FindNVideosWithoutComments: %w", err)
+	if q.findNVideosMissingDataStmt, err = db.PrepareContext(ctx, findNVideosMissingData); err != nil {
+		return nil, fmt.Errorf("error preparing query FindNVideosMissingData: %w", err)
 	}
 	if q.findUserByIDStmt, err = db.PrepareContext(ctx, findUserByID); err != nil {
 		return nil, fmt.Errorf("error preparing query FindUserByID: %w", err)
@@ -88,6 +91,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteLikeStmt: %w", cerr)
 		}
 	}
+	if q.deleteVideoByIDStmt != nil {
+		if cerr := q.deleteVideoByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing deleteVideoByIDStmt: %w", cerr)
+		}
+	}
 	if q.findAggregateDislikeByIDStmt != nil {
 		if cerr := q.findAggregateDislikeByIDStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findAggregateDislikeByIDStmt: %w", cerr)
@@ -108,9 +116,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findNVideosByIDHashStmt: %w", cerr)
 		}
 	}
-	if q.findNVideosWithoutCommentsStmt != nil {
-		if cerr := q.findNVideosWithoutCommentsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing findNVideosWithoutCommentsStmt: %w", cerr)
+	if q.findNVideosMissingDataStmt != nil {
+		if cerr := q.findNVideosMissingDataStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findNVideosMissingDataStmt: %w", cerr)
 		}
 	}
 	if q.findUserByIDStmt != nil {
@@ -200,47 +208,49 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                             DBTX
-	tx                             *sql.Tx
-	deleteDislikeStmt              *sql.Stmt
-	deleteLikeStmt                 *sql.Stmt
-	findAggregateDislikeByIDStmt   *sql.Stmt
-	findDislikeStmt                *sql.Stmt
-	findLikeStmt                   *sql.Stmt
-	findNVideosByIDHashStmt        *sql.Stmt
-	findNVideosWithoutCommentsStmt *sql.Stmt
-	findUserByIDStmt               *sql.Stmt
-	findVideoDetailsByIDStmt       *sql.Stmt
-	getDislikeCountStmt            *sql.Stmt
-	getLikeCountStmt               *sql.Stmt
-	insertAggregateDislikeStmt     *sql.Stmt
-	insertDislikeStmt              *sql.Stmt
-	insertLikeStmt                 *sql.Stmt
-	insertUserStmt                 *sql.Stmt
-	updateAggregateDislikeStmt     *sql.Stmt
-	upsertVideoDetailsStmt         *sql.Stmt
+	db                           DBTX
+	tx                           *sql.Tx
+	deleteDislikeStmt            *sql.Stmt
+	deleteLikeStmt               *sql.Stmt
+	deleteVideoByIDStmt          *sql.Stmt
+	findAggregateDislikeByIDStmt *sql.Stmt
+	findDislikeStmt              *sql.Stmt
+	findLikeStmt                 *sql.Stmt
+	findNVideosByIDHashStmt      *sql.Stmt
+	findNVideosMissingDataStmt   *sql.Stmt
+	findUserByIDStmt             *sql.Stmt
+	findVideoDetailsByIDStmt     *sql.Stmt
+	getDislikeCountStmt          *sql.Stmt
+	getLikeCountStmt             *sql.Stmt
+	insertAggregateDislikeStmt   *sql.Stmt
+	insertDislikeStmt            *sql.Stmt
+	insertLikeStmt               *sql.Stmt
+	insertUserStmt               *sql.Stmt
+	updateAggregateDislikeStmt   *sql.Stmt
+	upsertVideoDetailsStmt       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                             tx,
-		tx:                             tx,
-		deleteDislikeStmt:              q.deleteDislikeStmt,
-		deleteLikeStmt:                 q.deleteLikeStmt,
-		findAggregateDislikeByIDStmt:   q.findAggregateDislikeByIDStmt,
-		findDislikeStmt:                q.findDislikeStmt,
-		findLikeStmt:                   q.findLikeStmt,
-		findNVideosByIDHashStmt:        q.findNVideosByIDHashStmt,
-		findNVideosWithoutCommentsStmt: q.findNVideosWithoutCommentsStmt,
-		findUserByIDStmt:               q.findUserByIDStmt,
-		findVideoDetailsByIDStmt:       q.findVideoDetailsByIDStmt,
-		getDislikeCountStmt:            q.getDislikeCountStmt,
-		getLikeCountStmt:               q.getLikeCountStmt,
-		insertAggregateDislikeStmt:     q.insertAggregateDislikeStmt,
-		insertDislikeStmt:              q.insertDislikeStmt,
-		insertLikeStmt:                 q.insertLikeStmt,
-		insertUserStmt:                 q.insertUserStmt,
-		updateAggregateDislikeStmt:     q.updateAggregateDislikeStmt,
-		upsertVideoDetailsStmt:         q.upsertVideoDetailsStmt,
+		db:                           tx,
+		tx:                           tx,
+		deleteDislikeStmt:            q.deleteDislikeStmt,
+		deleteLikeStmt:               q.deleteLikeStmt,
+		deleteVideoByIDStmt:          q.deleteVideoByIDStmt,
+		findAggregateDislikeByIDStmt: q.findAggregateDislikeByIDStmt,
+		findDislikeStmt:              q.findDislikeStmt,
+		findLikeStmt:                 q.findLikeStmt,
+		findNVideosByIDHashStmt:      q.findNVideosByIDHashStmt,
+		findNVideosMissingDataStmt:   q.findNVideosMissingDataStmt,
+		findUserByIDStmt:             q.findUserByIDStmt,
+		findVideoDetailsByIDStmt:     q.findVideoDetailsByIDStmt,
+		getDislikeCountStmt:          q.getDislikeCountStmt,
+		getLikeCountStmt:             q.getLikeCountStmt,
+		insertAggregateDislikeStmt:   q.insertAggregateDislikeStmt,
+		insertDislikeStmt:            q.insertDislikeStmt,
+		insertLikeStmt:               q.insertLikeStmt,
+		insertUserStmt:               q.insertUserStmt,
+		updateAggregateDislikeStmt:   q.updateAggregateDislikeStmt,
+		upsertVideoDetailsStmt:       q.upsertVideoDetailsStmt,
 	}
 }
