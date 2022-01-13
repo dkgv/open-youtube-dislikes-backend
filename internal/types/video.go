@@ -39,3 +39,17 @@ func (v Video) LikesPerComment() float64 {
 	}
 	return float64(v.Likes) / float64(v.Comments) / 100
 }
+
+func (v Video) DaysPerLike() float64 {
+	if v.Likes == 0 {
+		return 0
+	}
+	return float64(v.DaysSincePublish()) / float64(v.Likes)
+}
+
+func (v Video) DaysPerComment() float64 {
+	if v.Comments == 0 {
+		return 0
+	}
+	return float64(v.DaysSincePublish()) / float64(v.Comments)
+}

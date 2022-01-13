@@ -45,12 +45,17 @@ func (s *Service) predictV1(video types.Video) (int64, error) {
 	input := mat.SparseMatrix{
 		Vectors: []mat.SparseVector{
 			{
-				0: float64(video.Views),
-				1: float64(video.Likes),
-				2: float64(video.Comments),
-				3: video.ViewsPerLike(),
-				4: video.LikesPerComment(),
-				5: video.ViewsPerComment(),
+				0:  float64(video.Views),
+				1:  float64(video.Likes),
+				2:  float64(video.Comments),
+				3:  float64(video.Subscribers),
+				4:  float64(video.DaysSincePublish()),
+				5:  float64(video.DurationSec),
+				6:  video.ViewsPerLike(),
+				7:  video.LikesPerComment(),
+				8:  video.ViewsPerComment(),
+				9:  video.DaysPerLike(),
+				10: video.DaysPerComment(),
 			},
 		},
 	}
