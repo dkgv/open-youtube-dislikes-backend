@@ -76,5 +76,10 @@ func tryPredict(model *inference.Ensemble, input mat.SparseMatrix) (int64, error
 		return 0, ErrNoPrediction
 	}
 
-	return int64(floats[0]), nil
+	dislikes := int64(floats[0])
+	if dislikes < 0 {
+		dislikes = 0
+	}
+
+	return dislikes, nil
 }

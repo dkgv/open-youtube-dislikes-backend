@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -69,6 +70,11 @@ func (s *Service) AugmentVideo(videoID string, video *types.Video) error {
 	if err != nil {
 		return err
 	}
+
+	if len(videoResp.Items) == 0 {
+		return fmt.Errorf("video %s not found", videoID)
+	}
+
 	videoItem := videoResp.Items[0]
 
 	channelResp, err := s.youtubeClient.GetChannelsList([]string{videoItem.Snippet.ChannelId})
