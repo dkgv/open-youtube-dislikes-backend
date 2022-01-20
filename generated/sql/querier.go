@@ -20,6 +20,7 @@ type Querier interface {
 	GetDislikeCount(ctx context.Context, videoID string) (int64, error)
 	GetLikeCount(ctx context.Context, videoID string) (int64, error)
 	InsertAggregateDislike(ctx context.Context, arg InsertAggregateDislikeParams) error
+	InsertComment(ctx context.Context, arg InsertCommentParams) error
 	InsertDislike(ctx context.Context, arg InsertDislikeParams) error
 	InsertLike(ctx context.Context, arg InsertLikeParams) error
 	InsertUser(ctx context.Context, id string) error

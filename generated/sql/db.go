@@ -61,6 +61,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.insertAggregateDislikeStmt, err = db.PrepareContext(ctx, insertAggregateDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertAggregateDislike: %w", err)
 	}
+	if q.insertCommentStmt, err = db.PrepareContext(ctx, insertComment); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertComment: %w", err)
+	}
 	if q.insertDislikeStmt, err = db.PrepareContext(ctx, insertDislike); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertDislike: %w", err)
 	}
@@ -146,6 +149,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing insertAggregateDislikeStmt: %w", cerr)
 		}
 	}
+	if q.insertCommentStmt != nil {
+		if cerr := q.insertCommentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertCommentStmt: %w", cerr)
+		}
+	}
 	if q.insertDislikeStmt != nil {
 		if cerr := q.insertDislikeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertDislikeStmt: %w", cerr)
@@ -223,6 +231,7 @@ type Queries struct {
 	getDislikeCountStmt          *sql.Stmt
 	getLikeCountStmt             *sql.Stmt
 	insertAggregateDislikeStmt   *sql.Stmt
+	insertCommentStmt            *sql.Stmt
 	insertDislikeStmt            *sql.Stmt
 	insertLikeStmt               *sql.Stmt
 	insertUserStmt               *sql.Stmt
@@ -247,6 +256,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getDislikeCountStmt:          q.getDislikeCountStmt,
 		getLikeCountStmt:             q.getLikeCountStmt,
 		insertAggregateDislikeStmt:   q.insertAggregateDislikeStmt,
+		insertCommentStmt:            q.insertCommentStmt,
 		insertDislikeStmt:            q.insertDislikeStmt,
 		insertLikeStmt:               q.insertLikeStmt,
 		insertUserStmt:               q.insertUserStmt,

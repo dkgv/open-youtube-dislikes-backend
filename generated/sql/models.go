@@ -13,6 +13,15 @@ type OpenYoutubeDislikesAggregateDislike struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type OpenYoutubeDislikesComment struct {
+	VideoID  string  `json:"video_id"`
+	Content  string  `json:"content"`
+	Negative float32 `json:"negative"`
+	Neutral  float32 `json:"neutral"`
+	Positive float32 `json:"positive"`
+	Compound float32 `json:"compound"`
+}
+
 type OpenYoutubeDislikesDislike struct {
 	VideoID   string    `json:"video_id"`
 	UserID    string    `json:"user_id"`

@@ -14,6 +14,7 @@ require (
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/grassmudhorses/vader-go v0.0.0-20191126145716-003d5aacdb71
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4

@@ -97,3 +97,41 @@ type ChannelItem struct {
 		VideoCount            string `json:"videoCount"`
 	} `json:"statistics"`
 }
+
+type CommentThreadResponse struct {
+	BaseResponse
+	Comments []Comment `json:"items"`
+}
+
+type Comment struct {
+	Kind    string `json:"kind"`
+	Etag    string `json:"etag"`
+	Id      string `json:"id"`
+	Snippet struct {
+		VideoId         string `json:"videoId"`
+		TopLevelComment struct {
+			Kind    string `json:"kind"`
+			Etag    string `json:"etag"`
+			Id      string `json:"id"`
+			Snippet struct {
+				VideoId               string `json:"videoId"`
+				TextDisplay           string `json:"textDisplay"`
+				TextOriginal          string `json:"textOriginal"`
+				AuthorDisplayName     string `json:"authorDisplayName"`
+				AuthorProfileImageUrl string `json:"authorProfileImageUrl"`
+				AuthorChannelUrl      string `json:"authorChannelUrl"`
+				AuthorChannelId       struct {
+					Value string `json:"value"`
+				} `json:"authorChannelId"`
+				CanRate      bool      `json:"canRate"`
+				ViewerRating string    `json:"viewerRating"`
+				LikeCount    int       `json:"likeCount"`
+				PublishedAt  time.Time `json:"publishedAt"`
+				UpdatedAt    time.Time `json:"updatedAt"`
+			} `json:"snippet"`
+		} `json:"topLevelComment"`
+		CanReply        bool `json:"canReply"`
+		TotalReplyCount int  `json:"totalReplyCount"`
+		IsPublic        bool `json:"isPublic"`
+	} `json:"snippet"`
+}

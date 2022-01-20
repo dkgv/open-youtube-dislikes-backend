@@ -10,6 +10,7 @@ import (
 	db "github.com/dkgv/dislikes/generated/sql"
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/database/repo"
+	"github.com/dkgv/dislikes/internal/logic/ml"
 	"github.com/dkgv/dislikes/internal/logic/video"
 	"github.com/dkgv/dislikes/internal/mappers"
 	"github.com/dkgv/dislikes/internal/youtube"
@@ -23,6 +24,8 @@ func main() {
 	}
 
 	videoRepo := repo.NewVideoRepo(conn)
+	commentRepo := repo.NewCommentRepo(conn)
+
 	videos, err := videoRepo.FindNVideosMissingData(context.Background(), 50_000)
 	if err != nil {
 		log.Println("Failed to find videos without comments:", err)
@@ -31,6 +34,11 @@ func main() {
 
 	youtubeClient := youtube.New()
 	videoService := video.New(videoRepo, youtubeClient)
+	mlService, err := ml.New()
+	if err != nil {
+		log.Println("Failed to create ml service:", err)
+		return
+	}
 
 	batchSize := 40
 	for i := 0; i < len(videos)-batchSize; i += batchSize {
@@ -68,11 +76,13 @@ func main() {
 		channelIDs := make([]string, 0)
 		channelIDToVideoID := make(map[string]string)
 		for _, videoItem := range videoResp.Items {
-			channelIDs = append(channelIDs, videoItem.Snippet.ChannelId)
-			channelIDToVideoID[videoItem.Snippet.ChannelId] = videoItem.Id
+			channelID := videoItem.Snippet.ChannelId
+			if _, ok := channelIDToVideoID[channelID]; !ok {
+				channelIDs = append(channelIDs, channelID)
+				channelIDToVideoID[channelID] = videoItem.Id
+			}
 		}
 
-		log.Println("ChannelIDs:", channelIDs)
 		channelResp, err := youtubeClient.GetChannelsList(channelIDs)
 		if err != nil {
 			log.Println("Failed to get channels list:", err)
@@ -110,6 +120,32 @@ func main() {
 				vid.PublishedAt,
 				vid.DurationSec,
 			)
+
+			resp, err := youtubeClient.GetCommentThreadForVideo(dbVideo.ID, 99)
+			if err != nil {
+				continue
+			}
+
+			if resp == nil {
+				continue
+			}
+
+			for _, comment := range resp.Comments {
+				content := comment.Snippet.TopLevelComment.Snippet.TextOriginal
+				sentiment, err := mlService.Sentiment(context.Background(), content)
+				if err != nil {
+					continue
+				}
+
+				_ = commentRepo.Insert(context.Background(),
+					dbVideo.ID,
+					content,
+					float32(sentiment.Negative),
+					float32(sentiment.Neutral),
+					float32(sentiment.Positive),
+					float32(sentiment.Compound),
+				)
+			}
 		}
 	}
 }
