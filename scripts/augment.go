@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/chrisport/go-lang-detector/langdet/langdetdef"
 	db "github.com/dkgv/dislikes/generated/sql"
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/database/repo"
@@ -130,8 +131,16 @@ func main() {
 				continue
 			}
 
+			detector := langdetdef.NewWithDefaultLanguages()
 			for _, comment := range resp.Comments {
 				content := comment.Snippet.TopLevelComment.Snippet.TextOriginal
+
+				// Sentiment analysis only works with English comments
+				result := detector.GetClosestLanguage(content)
+				if result != "english" {
+					continue
+				}
+
 				sentiment, err := mlService.Sentiment(context.Background(), content)
 				if err != nil {
 					continue
