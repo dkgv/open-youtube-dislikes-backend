@@ -3,10 +3,6 @@
     {
       "command": "/bin/bash scripts/augment.sh",
       "schedule": "0 0 * * *"
-    },
-    {
-      "command": "/bin/bash scripts/augment.sh",
-      "schedule": "0 12 * * * "
     }
   ]
 }

@@ -10,15 +10,21 @@ import (
 )
 
 type Client struct {
-	key    string
-	client *http.Client
+	keyContainer keyContainer
+	client       *http.Client
 }
 
 func New() *Client {
-	key := os.Getenv("YOUTUBE_API_KEY")
+	var container keyContainer
+	keyJSON := os.Getenv("YOUTUBE_API_KEY")
+	err := json.Unmarshal([]byte(keyJSON), &container)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Client{
-		key:    key,
-		client: &http.Client{},
+		keyContainer: container,
+		client:       &http.Client{},
 	}
 }
 
@@ -122,5 +128,16 @@ func (c *Client) buildBulkURL(endpoint string, parts []string, ids []string) str
 
 func (c *Client) buildURL(endpoint string, parameters string) string {
 	url := "https://youtube.googleapis.com/youtube/v3/%s?key=%s&%s"
-	return fmt.Sprintf(url, endpoint, c.key, parameters)
+	return fmt.Sprintf(url, endpoint, c.keyContainer.GetKey(), parameters)
+}
+
+type keyContainer struct {
+	Keys  []string `json:"keys"`
+	index int
+}
+
+func (c *keyContainer) GetKey() string {
+	key := c.Keys[c.index%len(c.Keys)]
+	c.index++
+	return key
 }

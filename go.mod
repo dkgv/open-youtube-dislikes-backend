@@ -6,7 +6,6 @@ go 1.16
 
 require (
 	github.com/Elvenson/xgboost-go v0.1.2
-	github.com/chrisport/go-lang-detector v0.0.0-20201227125515-a4270979d85f
 	github.com/go-openapi/errors v0.20.1
 	github.com/go-openapi/loads v0.21.0
 	github.com/go-openapi/runtime v0.21.0

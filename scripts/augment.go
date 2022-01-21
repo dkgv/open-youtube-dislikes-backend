@@ -6,8 +6,8 @@ package main
 import (
 	"context"
 	"log"
+	"unicode"
 
-	"github.com/chrisport/go-lang-detector/langdet/langdetdef"
 	db "github.com/dkgv/dislikes/generated/sql"
 	"github.com/dkgv/dislikes/internal/database"
 	"github.com/dkgv/dislikes/internal/database/repo"
@@ -124,20 +124,21 @@ func main() {
 
 			resp, err := youtubeClient.GetCommentThreadForVideo(dbVideo.ID, 99)
 			if err != nil {
+				log.Println("Failed to get comments:", err)
 				continue
 			}
 
 			if resp == nil {
+				log.Println("No comments for video:", dbVideo.ID)
 				continue
 			}
 
-			detector := langdetdef.NewWithDefaultLanguages()
 			for _, comment := range resp.Comments {
 				content := comment.Snippet.TopLevelComment.Snippet.TextOriginal
 
 				// Sentiment analysis only works with English comments
-				result := detector.GetClosestLanguage(content)
-				if result != "english" {
+				if containsRussian(content) {
+					log.Println("Comment is not in English:", content)
 					continue
 				}
 
@@ -157,4 +158,13 @@ func main() {
 			}
 		}
 	}
+}
+
+func containsRussian(s string) bool {
+	for _, r := range s {
+		if unicode.Is(unicode.Cyrillic, r) {
+			return true
+		}
+	}
+	return false
 }
