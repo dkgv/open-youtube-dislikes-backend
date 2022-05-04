@@ -35,7 +35,7 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, vid
 			return operations.NewPostVideoIDBadRequest()
 		}
 
-		dislikes, formattedDislikes, err := dislikeService.GetDislikes(ctx, 1, params.ID)
+		dislikes, formattedDislikes, err := dislikeService.GetDislikes(ctx, params.ID)
 		if err != nil {
 			return operations.NewPostVideoIDBadRequest()
 		}

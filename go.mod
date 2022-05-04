@@ -14,10 +14,13 @@ require (
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.3
 	github.com/golang-migrate/migrate/v4 v4.15.1
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/grassmudhorses/vader-go v0.0.0-20191126145716-003d5aacdb71
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/joho/godotenv v1.4.0
+	github.com/kyleconroy/sqlc v1.13.0 // indirect
 	github.com/lib/pq v1.10.4
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/net v0.0.0-20211029224645-99673261e6eb
+	google.golang.org/protobuf v1.28.0 // indirect
 )

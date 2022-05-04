@@ -35,6 +35,7 @@ func main() {
 	likeRepo := repo.NewLikeRepo(conn)
 	videoRepo := repo.NewVideoRepo(conn)
 	userRepo := repo.NewUserRepo(conn)
+	commentRepo := repo.NewCommentRepo(conn)
 
 	mlService, err := ml.New()
 	if err != nil {
@@ -42,7 +43,7 @@ func main() {
 	}
 
 	youtubeClient := youtube.New()
-	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo)
+	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo, commentRepo)
 	userService := user.New(userRepo, likeRepo, dislikeRepo)
 	videoService := video.New(videoRepo, youtubeClient)
 

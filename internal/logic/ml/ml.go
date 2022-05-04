@@ -2,6 +2,7 @@ package ml
 
 import (
 	"context"
+	"fmt"
 
 	xgb "github.com/Elvenson/xgboost-go"
 	"github.com/Elvenson/xgboost-go/activation"
@@ -10,38 +11,60 @@ import (
 	"github.com/dkgv/dislikes/internal/types"
 )
 
+type ModelType int
+
+const (
+	ModelTypeSimple    ModelType = iota
+	ModelTypeSentiment ModelType = 1
+)
+
 type Service struct {
-	modelV1 *inference.Ensemble
+	simpleModel    *inference.Ensemble
+	sentimentModel *inference.Ensemble
 }
 
 func New() (*Service, error) {
-	modelV1, err := xgb.LoadXGBoostFromJSON(
-		"statics/xgboost.json",
-		"",
-		1,
-		0,
-		&activation.Raw{},
-	)
+	simpleModel, err := loadModel("xgboost-simple")
+	if err != nil {
+		return nil, err
+	}
+
+	sentimentModel, err := loadModel("xgboost-sentiment")
 	if err != nil {
 		return nil, err
 	}
 
 	return &Service{
-		modelV1: modelV1,
+		simpleModel:    simpleModel,
+		sentimentModel: sentimentModel,
 	}, nil
 }
 
-func (s *Service) Predict(ctx context.Context, apiVersion int, video types.Video) (int64, error) {
+func loadModel(name string) (*inference.Ensemble, error) {
+	modelV1, err := xgb.LoadXGBoostFromJSON(
+		fmt.Sprintf("statics/%s.json", name),
+		"",
+		1,
+		0,
+		&activation.Raw{},
+	)
+	return modelV1, err
+}
+
+func (s *Service) Predict(ctx context.Context, apiVersion ModelType, video types.Video) (int64, error) {
 	switch apiVersion {
-	case 1:
-		return s.predictV1(video)
+	case ModelTypeSimple:
+		return s.predictSimple(video)
+
+	case ModelTypeSentiment:
+		return s.predictSentiment(video)
 
 	default:
 		return 0, ErrUnsupportedAPIVersion
 	}
 }
 
-func (s *Service) predictV1(video types.Video) (int64, error) {
+func (s *Service) predictSimple(video types.Video) (int64, error) {
 	input := mat.SparseMatrix{
 		Vectors: []mat.SparseVector{
 			{
@@ -60,7 +83,35 @@ func (s *Service) predictV1(video types.Video) (int64, error) {
 		},
 	}
 
-	return tryPredict(s.modelV1, input)
+	return tryPredict(s.simpleModel, input)
+}
+
+func (s *Service) predictSentiment(video types.Video) (int64, error) {
+	input := mat.SparseMatrix{
+		Vectors: []mat.SparseVector{
+			{
+				0:  float64(video.Likes),
+				1:  float64(video.Dislikes),
+				2:  float64(video.Views),
+				3:  float64(video.Comments),
+				4:  float64(video.Subscribers),
+				5:  float64(video.DaysSincePublish()),
+				6:  float64(video.DurationSec),
+				7:  video.Negative,
+				8:  video.Neutral,
+				9:  video.Positive,
+				10: video.Compound,
+				11: video.ViewsPerLike(),
+				12: video.SubscribersPerLike(),
+				13: video.LikesPerComment(),
+				14: video.ViewsPerComment(),
+				15: video.DaysPerLike(),
+				16: video.DaysPerComment(),
+			},
+		},
+	}
+
+	return tryPredict(s.sentimentModel, input)
 }
 
 func tryPredict(model *inference.Ensemble, input mat.SparseMatrix) (int64, error) {

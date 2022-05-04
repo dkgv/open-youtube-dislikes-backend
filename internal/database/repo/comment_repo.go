@@ -25,3 +25,11 @@ func (c *CommentRepo) Insert(ctx context.Context, videoID string, content string
 		Compound: compound,
 	})
 }
+
+func (c *CommentRepo) FindSentimentByVideoID(ctx context.Context, videoID string) (db.FindSentimentByVideoIDRow, error) {
+	return c.querier.FindSentimentByVideoID(ctx, videoID)
+}
+
+func (c *CommentRepo) FindCommentStatusByVideoID(ctx context.Context, videoID string) (bool, error) {
+	return c.querier.FindCommentStatusByVideoID(ctx, videoID)
+}
