@@ -34,8 +34,8 @@ func main() {
 	}
 
 	youtubeClient := youtube.New()
-	videoService := video.New(videoRepo, youtubeClient)
 	mlService, err := ml.New()
+	videoService := video.New(videoRepo, youtubeClient, mlService, commentRepo)
 	if err != nil {
 		log.Println("Failed to create ml service:", err)
 		return
@@ -122,40 +122,7 @@ func main() {
 				vid.DurationSec,
 			)
 
-			resp, err := youtubeClient.GetCommentThreadForVideo(dbVideo.ID, 99)
-			if err != nil {
-				log.Println("Failed to get comments:", err)
-				continue
-			}
-
-			if resp == nil {
-				log.Println("No comments for video:", dbVideo.ID)
-				continue
-			}
-
-			for _, comment := range resp.Comments {
-				content := comment.Snippet.TopLevelComment.Snippet.TextOriginal
-
-				// Sentiment analysis only works with English comments
-				if containsRussian(content) {
-					log.Println("Comment is not in English:", content)
-					continue
-				}
-
-				sentiment, err := mlService.Sentiment(context.Background(), content)
-				if err != nil {
-					continue
-				}
-
-				_ = commentRepo.Insert(context.Background(),
-					dbVideo.ID,
-					content,
-					float32(sentiment.Negative),
-					float32(sentiment.Neutral),
-					float32(sentiment.Positive),
-					float32(sentiment.Compound),
-				)
-			}
+			_ = videoService.ProcessVideoComments(context.Background(), dbVideo.ID)
 		}
 	}
 }

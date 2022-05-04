@@ -21,7 +21,7 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, vid
 			return operations.NewPostVideoIDBadRequest()
 		}
 
-		err := videoService.AddVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
+		err := videoService.ProcessVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
 		if err != nil {
 			log.Printf("Error while adding video: %v", err)
 			return operations.NewPostVideoIDBadRequest()

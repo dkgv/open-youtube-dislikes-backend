@@ -4,43 +4,59 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"log"
-	"regexp"
-	"strconv"
-	"time"
+	"unicode"
 
 	"github.com/dkgv/dislikes/internal/types"
 	"github.com/dkgv/dislikes/internal/youtube"
+	"github.com/grassmudhorses/vader-go/sentitext"
 )
 
 type VideoRepo interface {
 	Upsert(ctx context.Context, id string, idHash string, likes, dislikes, views int64, comments int64, subscribers int64, publishedAt int64, durationSec int32) error
 }
 
+type CommentRepo interface {
+	Insert(ctx context.Context, videoID string, content string, negative float32, neutral float32, positive float32, compound float32) error
+}
+
 type YouTubeClient interface {
 	GetVideosList(videoIDs []string) (*youtube.VideosListResponse, error)
 	GetChannelsList(channelIDs []string) (*youtube.ChannelsListResponse, error)
+	GetCommentThreadForVideo(videoID string, count int) (*youtube.CommentThreadResponse, error)
+}
+
+type MLService interface {
+	Sentiment(ctx context.Context, text string) (sentitext.Sentiment, error)
 }
 
 type Service struct {
 	videoRepo     VideoRepo
+	commentRepo   CommentRepo
 	youtubeClient YouTubeClient
+	mlService     MLService
 }
 
-func New(videoRepo VideoRepo, youtubeClient YouTubeClient) *Service {
+func New(videoRepo VideoRepo, youtubeClient YouTubeClient, mlService MLService, commentRepo CommentRepo) *Service {
 	return &Service{
 		videoRepo:     videoRepo,
 		youtubeClient: youtubeClient,
+		mlService:     mlService,
+		commentRepo:   commentRepo,
 	}
 }
 
-func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Video) error {
+func (s *Service) ProcessVideo(ctx context.Context, videoID string, video types.Video) error {
 	if video.Views == 0 || video.Comments <= 0 {
 		err := s.AugmentVideo(videoID, &video)
 		if err != nil {
 			log.Printf("Failed to augment video %s: %s", videoID, err)
 		}
+	}
+
+	err := s.ProcessVideoComments(ctx, videoID)
+	if err != nil {
+		log.Printf("Failed to process video %s comments: %s", videoID, err)
 	}
 
 	videoIDHash := hashString(videoID)
@@ -58,6 +74,43 @@ func (s *Service) AddVideo(ctx context.Context, videoID string, video types.Vide
 	)
 }
 
+func (s *Service) ProcessVideoComments(ctx context.Context, videoID string) error {
+	resp, err := s.youtubeClient.GetCommentThreadForVideo(videoID, 99)
+	if err != nil {
+		return err
+	}
+
+	if resp == nil {
+		return nil
+	}
+
+	for _, comment := range resp.Comments {
+		content := comment.Snippet.TopLevelComment.Snippet.TextOriginal
+
+		// Sentiment analysis only works with English comments
+		if containsRussian(content) {
+			continue
+		}
+
+		sentiment, err := s.mlService.Sentiment(context.Background(), content)
+		if err != nil {
+			continue
+		}
+
+		// Discard error for single comment insertion
+		_ = s.commentRepo.Insert(context.Background(),
+			videoID,
+			content,
+			float32(sentiment.Negative),
+			float32(sentiment.Neutral),
+			float32(sentiment.Positive),
+			float32(sentiment.Compound),
+		)
+	}
+
+	return nil
+}
+
 func hashString(input string) string {
 	hash := sha256.New()
 	hash.Write([]byte(input))
@@ -65,94 +118,11 @@ func hashString(input string) string {
 	return hex.EncodeToString(md)
 }
 
-func (s *Service) AugmentVideo(videoID string, video *types.Video) error {
-	videoResp, err := s.youtubeClient.GetVideosList([]string{videoID})
-	if err != nil {
-		return err
+func containsRussian(s string) bool {
+	for _, r := range s {
+		if unicode.Is(unicode.Cyrillic, r) {
+			return true
+		}
 	}
-
-	if len(videoResp.Items) == 0 {
-		return fmt.Errorf("video %s not found", videoID)
-	}
-
-	videoItem := videoResp.Items[0]
-
-	channelResp, err := s.youtubeClient.GetChannelsList([]string{videoItem.Snippet.ChannelId})
-	if err != nil {
-		return err
-	}
-	channelItem := channelResp.Items[0]
-
-	return s.AugmentVideoStruct(videoItem, channelItem, video)
-}
-
-func (s *Service) AugmentVideoStruct(videoItem youtube.VideoItem, channelItem youtube.ChannelItem, video *types.Video) error {
-	statistics := videoItem.Statistics
-	contentDetails := videoItem.ContentDetails
-
-	likeCount := parseInt64(statistics.LikeCount)
-	viewCount := parseInt64(statistics.ViewCount)
-	commentCount := parseInt64(statistics.CommentCount)
-	subscribers := parseInt64(channelItem.Statistics.SubscriberCount)
-	publishedAt := parseDateToMillis(videoItem.Snippet.PublishedAt)
-	durationSec := parseDurationToSec(contentDetails.Duration)
-
-	video.Likes = max(likeCount, video.Likes)
-	video.Views = max(viewCount, video.Views)
-	video.Comments = max(commentCount, video.Comments)
-	video.Subscribers = max(subscribers, video.Subscribers)
-	video.PublishedAt = max(publishedAt, video.PublishedAt)
-	video.DurationSec = int32(max(durationSec, int64(video.DurationSec)))
-
-	return nil
-}
-
-func parseDateToMillis(date time.Time) int64 {
-	return date.UnixNano() / int64(time.Millisecond)
-}
-
-func parseDurationToSec(duration string) int64 {
-	re := regexp.MustCompile(`^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:.\d+)?)S)?$`)
-	matches := re.FindStringSubmatch(duration)
-	if matches == nil {
-		return 0
-	}
-
-	seconds := int64(0)
-	if matches[1] != "" {
-		days := parseInt64(matches[1])
-		seconds += days * 24 * 60 * 60
-	}
-
-	if matches[2] != "" {
-		hours := parseInt64(matches[2])
-		seconds += hours * 60 * 60
-	}
-
-	if matches[3] != "" {
-		minutes := matches[3]
-		seconds += parseInt64(minutes) * 60
-	}
-
-	if matches[4] != "" {
-		seconds += parseInt64(matches[4])
-	}
-
-	return seconds
-}
-
-func max(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func parseInt64(s string) int64 {
-	i, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	return i
+	return false
 }

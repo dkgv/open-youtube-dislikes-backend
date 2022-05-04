@@ -45,7 +45,7 @@ func main() {
 	youtubeClient := youtube.New()
 	dislikeService := dislikes.New(mlService, videoRepo, dislikeRepo, commentRepo)
 	userService := user.New(userRepo, likeRepo, dislikeRepo)
-	videoService := video.New(videoRepo, youtubeClient)
+	videoService := video.New(videoRepo, youtubeClient, mlService, commentRepo)
 
 	instance := swagger.New(dislikeService, userService, videoService)
 	instance.Run()
