@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 
 	"github.com/dkgv/dislikes/generated/restapi/models"
 	"github.com/dkgv/dislikes/generated/restapi/restapi/operations"
@@ -22,6 +23,7 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, vid
 
 		err := videoService.AddVideo(context.Background(), params.ID, mappers.SwaggerVideoToVideo(params.Video))
 		if err != nil {
+			log.Printf("Error while adding video: %v", err)
 			return operations.NewPostVideoIDBadRequest()
 		}
 
@@ -37,6 +39,7 @@ func Initialize(dislikeService *dislikes.Service, userService *user.Service, vid
 
 		dislikes, formattedDislikes, err := dislikeService.GetDislikes(ctx, params.ID)
 		if err != nil {
+			log.Printf("Error while getting dislikes: %v", err)
 			return operations.NewPostVideoIDBadRequest()
 		}
 
