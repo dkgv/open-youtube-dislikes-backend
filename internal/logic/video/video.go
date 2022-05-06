@@ -51,12 +51,14 @@ func (s *Service) ProcessVideo(ctx context.Context, videoID string, video types.
 		err := s.AugmentVideo(videoID, &video)
 		if err != nil {
 			log.Printf("Failed to augment video %s: %s", videoID, err)
+			return err
 		}
 	}
 
 	err := s.ProcessVideoComments(ctx, videoID)
 	if err != nil {
 		log.Printf("Failed to process video %s comments: %s", videoID, err)
+		return err
 	}
 
 	videoIDHash := hashString(videoID)
