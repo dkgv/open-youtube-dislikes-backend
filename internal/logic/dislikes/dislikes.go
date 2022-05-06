@@ -92,6 +92,10 @@ func (s *Service) retrieveEstimatedDislikes(ctx context.Context, videoID string)
 		return 0, "0", err
 	}
 
+	if video.Likes+predictedDislikes > video.Views {
+		predictedDislikes = 0
+	}
+
 	return predictedDislikes, "~" + formatDislikes(predictedDislikes), nil
 }
 
