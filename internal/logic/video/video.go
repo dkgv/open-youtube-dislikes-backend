@@ -55,14 +55,8 @@ func (s *Service) ProcessVideo(ctx context.Context, videoID string, video types.
 		}
 	}
 
-	err := s.ProcessVideoComments(ctx, videoID)
-	if err != nil {
-		log.Printf("Failed to process video %s comments: %s", videoID, err)
-		return err
-	}
-
 	videoIDHash := hashString(videoID)
-	return s.videoRepo.Upsert(
+	err := s.videoRepo.Upsert(
 		ctx,
 		videoID,
 		videoIDHash,
@@ -74,6 +68,16 @@ func (s *Service) ProcessVideo(ctx context.Context, videoID string, video types.
 		video.PublishedAt,
 		video.DurationSec,
 	)
+	if err != nil {
+		return err
+	}
+
+	err = s.ProcessVideoComments(ctx, videoID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) ProcessVideoComments(ctx context.Context, videoID string) error {
