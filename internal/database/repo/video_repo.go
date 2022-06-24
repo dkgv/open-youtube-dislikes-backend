@@ -47,3 +47,7 @@ func (v *VideoRepo) FindNVideosMissingData(ctx context.Context, maxCount int32) 
 func (v *VideoRepo) DeleteVideoByID(ctx context.Context, id string) error {
 	return v.querier.DeleteVideoByID(ctx, id)
 }
+
+func (v *VideoRepo) FindNVideosMissingDataWithDislikes(ctx context.Context, maxCount int32) ([]db.OpenYoutubeDislikesVideo, error) {
+	return v.querier.FindNVideosMissingDataWithDislikes(ctx, maxCount)
+}

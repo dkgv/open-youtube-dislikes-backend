@@ -27,7 +27,7 @@ func main() {
 	videoRepo := repo.NewVideoRepo(conn)
 	commentRepo := repo.NewCommentRepo(conn)
 
-	videos, err := videoRepo.FindNVideosMissingData(context.Background(), 50_000)
+	videos, err := videoRepo.FindNVideosMissingDataWithDislikes(context.Background(), 50_000)
 	if err != nil {
 		log.Println("Failed to find videos without comments:", err)
 		return

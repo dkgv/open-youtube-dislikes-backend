@@ -29,5 +29,8 @@ INSERT INTO open_youtube_dislikes.video
 -- name: FindNVideosMissingData :many
 SELECT * FROM open_youtube_dislikes.video WHERE published_at <= 0 ORDER BY updated_at LIMIT $1;
 
+-- name: FindNVideosMissingDataWithDislikes :many
+SELECT * FROM open_youtube_dislikes.video WHERE published_at <= 0 AND dislikes > 0 ORDER BY updated_at LIMIT $1;
+
 -- name: DeleteVideoByID :exec
 DELETE FROM open_youtube_dislikes.video WHERE id = $1;
